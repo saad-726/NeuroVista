@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neuro Vista — Alzheimer Detection System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ========== LANDING PAGE ========== -->
+<div id="page-landing" class="page active">
+
+  <nav class="landing-nav">
+    <div class="nav-brand">
+      <span class="brand-icon">⬡</span>
+      <span class="brand-name">Neuro Vista</span>
+    </div>
+    <div class="nav-links">
+      <a href="#" onclick="showPage('page-login')">Sign In</a>
+      <a href="#" class="btn-nav" onclick="showPage('page-register')">Get Started</a>
+    </div>
+  </nav>
+
+  <main class="landing-hero">
+    <div class="hero-badge">Final Year Project · Deep Learning · Medical AI</div>
+    <h1 class="hero-title">
+      Early Alzheimer<br/>
+      <em>Detection</em> Through<br/>
+      Neural Imaging
+    </h1>
+    <p class="hero-subtitle">
+      A hybrid deep learning system combining CNN and LSTM architectures<br/>
+      to classify MRI scans with clinical-grade precision — enabling early intervention.
+    </p>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="showPage('page-register')">
+        Begin Analysis
+        <span class="btn-arrow">→</span>
+      </button>
+      <button class="btn-ghost" onclick="showPage('page-login')">
+        Patient Sign In
+      </button>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat-card">
+        <span class="stat-number">97.3<em>%</em></span>
+        <span class="stat-label">Model Accuracy</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-card">
+        <span class="stat-number">4<em>+</em></span>
+        <span class="stat-label">Classification Stages</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-card">
+        <span class="stat-number">&lt;2<em>s</em></span>
+        <span class="stat-label">Prediction Time</span>
+      </div>
+    </div>
+
+    <div class="hero-features">
+      <div class="feature-pill">
+        <span class="feature-dot"></span>
+        Grad-CAM Explainability
+      </div>
+      <div class="feature-pill">
+        <span class="feature-dot"></span>
+        CNN+LSTM Architecture
+      </div>
+      <div class="feature-pill">
+        <span class="feature-dot"></span>
+        HIPAA-Ready Design
+      </div>
+      <div class="feature-pill">
+        <span class="feature-dot"></span>
+        FastAPI Integration
+      </div>
+    </div>
+  </main>
+
+  <div class="landing-visual">
+    <div class="brain-rings">
+      <div class="ring ring-1"></div>
+      <div class="ring ring-2"></div>
+      <div class="ring ring-3"></div>
+      <div class="ring-core">
+        <div class="scan-lines"></div>
+        <span>MRI</span>
+      </div>
+    </div>
+    <div class="floating-card fc-1">
+      <span class="fc-dot mild"></span>
+      Mild Demented · 84.2%
+    </div>
+    <div class="floating-card fc-2">
+      <span class="fc-dot normal"></span>
+      Non Demented · 96.7%
+    </div>
+  </div>
+
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — Neuro Vista</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="page-login" class="page auth-page active">
+  <div class="auth-left">
+    <div class="auth-brand" onclick="showPage('page-landing')">
+      <span class="brand-icon">⬡</span>
+      <span class="brand-name">Neuro Vista</span>
+    </div>
+    <div class="auth-tagline">
+      <h2>Welcome<br/>back.</h2>
+      <p>Continue tracking your neurological health with AI precision.</p>
+    </div>
+    <div class="auth-decoration">
+      <div class="deco-ring r1"></div>
+      <div class="deco-ring r2"></div>
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <form class="auth-form-wrap" onsubmit="event.preventDefault(); handleLogin();">
+      <h3>Sign In</h3>
+      <p class="auth-sub">Access your Neuro Vista dashboard</p>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="loginEmail" placeholder="your@email.com" class="form-input" required />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••••" class="form-input" required />
+      </div>
+      <div class="form-row">
+        <label class="check-label">
+          <input type="checkbox" id="rememberMe" /> Remember me
+        </label>
+        <a href="#" class="link-soft">Forgot password?</a>
+      </div>
+      <button type="submit" class="btn-form">Sign In →</button>
+      <p class="auth-switch">Don't have an account? <a href="#" onclick="showPage('page-register')">Register here</a></p>
+    </form>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

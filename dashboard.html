@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Neuro Vista</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="page-dashboard" class="page dashboard-page active">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-icon">⬡</span>
+      <span class="brand-name">Neuro Vista</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="#" class="nav-item active" onclick="showSection('sec-home', this)">
+        <span class="nav-icon">◈</span>
+        <span>Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('sec-upload', this)">
+        <span class="nav-icon">⬆</span>
+        <span>Upload MRI Scan</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('sec-results', this)">
+        <span class="nav-icon">◎</span>
+        <span>Prediction Results</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('sec-history', this)">
+        <span class="nav-icon">⊙</span>
+        <span>History</span>
+      </a>
+
+      <div class="nav-section-label">AI Features</div>
+      <a href="#" class="nav-item" onclick="showSection('sec-chatbot', this)">
+        <span class="nav-icon">◉</span>
+        <span>Chatbot Assistant</span>
+        <span class="nav-badge">AI</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('sec-recommendations', this)">
+        <span class="nav-icon">✦</span>
+        <span>My Health Guide</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('sec-monitoring', this)">
+        <span class="nav-icon">◌</span>
+        <span>My Progress</span>
+        <span class="nav-badge soon">Soon</span>
+      </a>
+
+      <div class="nav-section-label">Support</div>
+      <a href="#" class="nav-item" onclick="showSection('sec-feedback', this)">
+        <span class="nav-icon">◇</span>
+        <span>Feedback</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">DA</div>
+        <div class="user-info">
+          <span class="user-name">Saad Ahmed</span>
+          <span class="user-role">Patient</span>
+        </div>
+        <button class="logout-btn" onclick="handleLogout()" title="Sign Out">⇥</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="dash-main">
+
+    <!-- TOP BAR -->
+    <header class="dash-topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+        <div class="breadcrumb" id="breadcrumb">Dashboard</div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search">
+          <span>⌕</span>
+          <input type="text" placeholder="Search scans, patients..." />
+        </div>
+        <div class="topbar-notif">
+          <span class="notif-dot"></span>
+          🔔
+        </div>
+        <div class="topbar-user">Dr. Ahmed</div>
+      </div>
+    </header>
+
+    <!-- DASHBOARD HOME -->
+    <section id="sec-home" class="dash-section active">
+      <div class="section-header">
+        <div>
+          <h2 id="welcomeText">Good morning 👋</h2>
+          <p class="section-sub">Here's an overview of your diagnostic activity</p>
+        </div>
+        <button class="btn-primary sm" onclick="showSection('sec-upload', document.querySelector('[onclick*=sec-upload]'))">
+          + New Scan
+        </button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-widget">
+          <div class="stat-widget-top">
+            <span class="stat-widget-icon blue">◈</span>
+            <span class="stat-widget-trend up">+12%</span>
+          </div>
+          <div class="stat-widget-num">48</div>
+          <div class="stat-widget-label">Total Scans Analyzed</div>
+        </div>
+        <div class="stat-widget">
+          <div class="stat-widget-top">
+            <span class="stat-widget-icon red">⬡</span>
+            <span class="stat-widget-trend up">+3</span>
+          </div>
+          <div class="stat-widget-num">14</div>
+          <div class="stat-widget-label">Positive Detections</div>
+        </div>
+        <div class="stat-widget">
+          <div class="stat-widget-top">
+            <span class="stat-widget-icon green">◎</span>
+            <span class="stat-widget-trend stable">stable</span>
+          </div>
+          <div class="stat-widget-num">97.3%</div>
+          <div class="stat-widget-label">Model Confidence Avg</div>
+        </div>
+        <div class="stat-widget">
+          <div class="stat-widget-top">
+            <span class="stat-widget-icon amber">◌</span>
+            <span class="stat-widget-trend down">-0.2s</span>
+          </div>
+          <div class="stat-widget-num">1.8s</div>
+          <div class="stat-widget-label">Avg Processing Time</div>
+        </div>
+      </div>
+
+      <div class="home-grid">
+        <div class="card recent-scans">
+          <div class="card-header">
+            <h4>My Recent Scans</h4>
+            <a href="#" onclick="showSection('sec-history', document.querySelector('[onclick*=sec-history]'))" class="link-soft">View all →</a>
+          </div>
+          <div class="scan-list">
+            <div class="scan-row">
+              <div class="scan-thumb mild-thumb">MRI</div>
+              <div class="scan-info">
+                <span class="scan-patient">Scan #1024</span>
+                <span class="scan-date">Today, 10:24 AM</span>
+              </div>
+              <span class="prediction-tag mild">Mild Demented</span>
+            </div>
+            <div class="scan-row">
+              <div class="scan-thumb normal-thumb">MRI</div>
+              <div class="scan-info">
+                <span class="scan-patient">Scan #1023</span>
+                <span class="scan-date">Yesterday, 09:11 AM</span>
+              </div>
+              <span class="prediction-tag normal">Non Demented</span>
+            </div>
+            <div class="scan-row">
+              <div class="scan-thumb mod-thumb">MRI</div>
+              <div class="scan-info">
+                <span class="scan-patient">Scan #1022</span>
+                <span class="scan-date">18 Apr 2026</span>
+              </div>
+              <span class="prediction-tag moderate">Moderate</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card health-insights">
+          <div class="card-header">
+            <h4>My Health Insights</h4>
+            <span class="badge-green">Updated</span>
+          </div>
+          <div class="insight-summary">
+            <p style="font-size: 0.9rem; color: var(--text-sub); margin-bottom: 16px;">
+              Your latest scan indicates <strong>Mild Dementia</strong>. Based on this, we've updated your health guide with new cognitive exercises.
+            </p>
+          </div>
+          <div class="wellness-tip" style="background: var(--surface2); padding: 16px; border-radius: var(--radius-sm); border-left: 4px solid var(--accent);">
+            <h5 style="font-size: 0.85rem; font-weight: 700; margin-bottom: 6px;">💡 Daily Wellness Tip</h5>
+            <p style="font-size: 0.82rem; color: var(--text-sub); line-height: 1.5;">
+              Engaging in 20 minutes of aerobic exercise today can help improve blood flow to the brain and support cognitive health.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- UPLOAD MRI -->
+    <section id="sec-upload" class="dash-section">
+      <div class="section-header">
+        <div>
+          <h2>Upload MRI Scan</h2>
+          <p class="section-sub">Upload a brain MRI image for AI-powered Alzheimer detection</p>
+        </div>
+      </div>
+
+      <div class="upload-layout">
+        <div class="card upload-card">
+          <div class="drop-zone" id="dropZone" ondragover="event.preventDefault(); this.style.borderColor='var(--accent)'; this.style.background='var(--accent-bg)';" ondragleave="this.style.borderColor='var(--border)'; this.style.background='transparent';" ondrop="handleDrop(event)">
+            <div class="drop-icon">⬡</div>
+            <h4>Drop MRI scan here</h4>
+            <p>or click to browse your files</p>
+            <p class="drop-formats">Supports: JPEG, PNG, DICOM · Max 20MB</p>
+            <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFile(this.files[0])" />
+            <button class="btn-primary sm" onclick="document.getElementById('fileInput').click()">Browse Files</button>
+          </div>
+
+          <div class="upload-preview" id="uploadPreview" style="display:none">
+            <div class="preview-header">
+              <h4>Preview</h4>
+              <button class="btn-ghost sm" onclick="clearUpload()">✕ Remove</button>
+            </div>
+            <div class="preview-img-wrap">
+              <img id="previewImg" src="" alt="MRI Preview" />
+              <div class="preview-overlay">
+                <span>MRI SCAN</span>
+              </div>
+            </div>
+            <div class="preview-meta" id="previewMeta"></div>
+          </div>
+        </div>
+
+        <div class="upload-sidebar">
+          <div class="card scan-settings">
+            <h4>Scan Configuration</h4>
+
+            <div class="form-group">
+              <label>Scan Type</label>
+              <select class="form-input">
+                <option>T1-weighted MRI</option>
+                <option>T2-weighted MRI</option>
+                <option>FLAIR</option>
+                <option>PET Scan</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Notes (optional)</label>
+              <textarea class="form-input" rows="3" placeholder="Clinical observations..."></textarea>
+            </div>
+            <button class="btn-primary full" onclick="runPrediction()">
+              Analyze with AI
+              <span class="btn-arrow">→</span>
+            </button>
+            <p class="upload-note">
+              ⚡ Powered by CNN+LSTM · Grad-CAM ready
+            </p>
+          </div>
+
+          <div class="card api-note">
+            <div class="api-tag">API Integration Point</div>
+            <code>POST /api/predict</code>
+            <p>This button will submit the scan to the FastAPI backend once integrated. The model returns prediction class, confidence scores, and Grad-CAM heatmap URL.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PREDICTION RESULTS -->
+    <section id="sec-results" class="dash-section">
+      <div class="section-header">
+        <div>
+          <h2>Prediction Results</h2>
+          <p class="section-sub">AI analysis output for the most recent scan</p>
+        </div>
+        <button class="btn-ghost sm" onclick="showSection('sec-upload', document.querySelector('[onclick*=sec-upload]'))">Upload New</button>
+      </div>
+
+      <div class="results-grid">
+        <div class="card result-main">
+          <div class="result-scan-wrap">
+            <div class="result-scan-placeholder">
+              <div class="scan-animation">
+                <div class="scan-line-anim"></div>
+                <span>BRAIN MRI</span>
+                <span class="scan-id">My Latest Scan</span>
+              </div>
+            </div>
+            <div class="heatmap-placeholder">
+              <div class="heatmap-label">Grad-CAM Heatmap</div>
+              <div class="heatmap-visual">
+                <div class="heat-spot s1"></div>
+                <div class="heat-spot s2"></div>
+                <div class="heat-spot s3"></div>
+                <span class="heatmap-note">AI Activation Map · Hippocampal Region</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card result-prediction">
+          <div class="prediction-badge mild">
+            <span class="pred-icon">◈</span>
+            Mild Demented
+          </div>
+          <div class="pred-confidence">
+            <div class="conf-circle">
+              <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--border)" stroke-width="8"/>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--accent)" stroke-width="8"
+                  stroke-dasharray="213" stroke-dashoffset="38" stroke-linecap="round"
+                  transform="rotate(-90 50 50)"/>
+              </svg>
+              <div class="conf-text">
+                <span class="conf-num">84.2</span>
+                <span class="conf-unit">%</span>
+              </div>
+            </div>
+            <div class="conf-label-main">Confidence Score</div>
+          </div>
+
+          <div class="all-classes">
+            <h5>All Class Probabilities</h5>
+            <div class="class-row">
+              <span class="class-name">Non Demented</span>
+              <div class="class-bar-wrap">
+                <div class="class-bar" style="width:9%"></div>
+              </div>
+              <span class="class-pct">9.1%</span>
+            </div>
+            <div class="class-row">
+              <span class="class-name">Very Mild</span>
+              <div class="class-bar-wrap">
+                <div class="class-bar vmild" style="width:4%"></div>
+              </div>
+              <span class="class-pct">4.3%</span>
+            </div>
+            <div class="class-row highlight">
+              <span class="class-name">Mild Demented ✓</span>
+              <div class="class-bar-wrap">
+                <div class="class-bar mild-bar" style="width:84.2%"></div>
+              </div>
+              <span class="class-pct">84.2%</span>
+            </div>
+            <div class="class-row">
+              <span class="class-name">Moderate</span>
+              <div class="class-bar-wrap">
+                <div class="class-bar mod-bar" style="width:2.4%"></div>
+              </div>
+              <span class="class-pct">2.4%</span>
+            </div>
+          </div>
+
+          <div class="result-meta">
+            <div class="meta-row"><span>Scan ID</span><span>#SCAN-2041-001</span></div>
+            <div class="meta-row"><span>Analyzed</span><span>Today, 10:24 AM</span></div>
+            <div class="meta-row"><span>Model</span><span>CNN+LSTM-v1</span></div>
+            <div class="meta-row"><span>Processing</span><span>1.72 seconds</span></div>
+          </div>
+
+          <div class="result-actions">
+            <button class="btn-primary sm">⬇ Export Report</button>
+            <button class="btn-ghost sm">Share Results</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card api-note mt">
+        <div class="api-tag">API Integration Point</div>
+        <code>GET /api/result/{scan_id}</code>
+        <p>Results are fetched from backend after prediction. The Grad-CAM heatmap URL is returned alongside classification outputs for overlay visualization.</p>
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section id="sec-history" class="dash-section">
+      <div class="section-header">
+        <div>
+          <h2>Scan History</h2>
+          <p class="section-sub">All previous MRI analyses and their results</p>
+        </div>
+        <div class="history-filters">
+          <select class="form-input sm">
+            <option>All Results</option>
+            <option>Non Demented</option>
+            <option>Mild Demented</option>
+            <option>Moderate</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card history-card">
+        <div class="history-table-wrap">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Scan</th>
+                <th>Scan ID</th>
+                <th>Prediction</th>
+                <th>Confidence</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody">
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <span>Showing 8 of 48 records</span>
+          <div class="pagination">
+            <button class="page-btn">←</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">→</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHATBOT -->
+    <section id="sec-chatbot" class="dash-section">
+      <div class="section-header">
+        <div>
+          <h2>Chatbot Assistant</h2>
+          <p class="section-sub">Ask questions about Alzheimer's, your results, or wellness tips</p>
+        </div>
+        <span class="badge-green">AI-Powered</span>
+      </div>
+
+      <div class="card chat-card">
+        <div class="chat-header">
+          <div class="chat-avatar">N</div>
+          <div>
+            <div class="chat-name">NeuroBot</div>
+            <div class="chat-status">Online · Medical Knowledge Base</div>
+          </div>
+          <div class="chat-model-tag">GPT/Claude API</div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-msg bot">
+            <div class="msg-avatar">N</div>
+            <div class="msg-bubble">
+              Hello! I'm NeuroBot, your AI health assistant. I can help you understand your scan results, explain the stages of Alzheimer's, or provide wellness suggestions. How can I assist you today?
+            </div>
+          </div>
+          <div class="chat-msg user">
+            <div class="msg-bubble">
+              What does my "Mild Demented" result mean?
+            </div>
+          </div>
+          <div class="chat-msg bot">
+            <div class="msg-avatar">N</div>
+            <div class="msg-bubble">
+              <strong>Mild Dementia</strong> (also called Mild Alzheimer's) is the second clinical stage. Key characteristics include:<br/><br/>
+              • <strong>Memory Loss</strong>: Notable gaps in memory, especially recent events<br/>
+              • <strong>Daily Living</strong>: Some difficulty with complex tasks (finances, planning)<br/>
+              • <strong>Awareness</strong>: Patient may still recognize the symptoms<br/>
+              • <strong>Recommended action</strong>: Neuropsychological evaluation + imaging follow-up in 6 months<br/><br/>
+              Would you like me to generate a personalized health guide for you?
+            </div>
+          </div>
+          <div class="chat-msg bot typing" id="typingIndicator" style="display:none">
+            <div class="msg-avatar">N</div>
+            <div class="msg-bubble typing-dots">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-input-area">
+          <input type="text" class="chat-input" id="chatInput" placeholder="Ask about Alzheimer's, scan results, treatments..." onkeydown="if(event.key==='Enter')sendChat()" />
+          <button class="chat-send" onclick="sendChat()">→</button>
+        </div>
+        <div class="chat-suggestions">
+          <button class="chat-chip" onclick="setChat('Explain the 4 stages of Alzheimer disease')">Explain 4 stages</button>
+          <button class="chat-chip" onclick="setChat('What medications are used for Alzheimer treatment?')">Treatment options</button>
+          <button class="chat-chip" onclick="setChat('How accurate is the CNN model?')">Model accuracy</button>
+        </div>
+      </div>
+
+      <div class="card api-note mt">
+        <div class="api-tag">API Integration Point</div>
+        <code>POST /api/chat</code>
+        <p>Connect to OpenAI GPT-4, Claude, or a fine-tuned medical LLM for intelligent, context-aware responses about Alzheimer's disease and scan interpretations.</p>
+      </div>
+    </section>
+
+    <!-- AI RECOMMENDATIONS -->
+    <section id="sec-recommendations" class="dash-section">
+      <div class="section-header">
+        <div>
+          <h2>My Health Guide</h2>
+          <p class="section-sub">Personalized recommendations based on your detection results</p>
+        </div>
+        <span class="badge-amber">Based on Latest Scan</span>
+      </div>
+
+      <div class="rec-alert">
+        <span class="alert-icon">⚠</span>
+        <div>
+          <strong>Action Recommended</strong>
+          <p>Mild dementia indicators detected. It is recommended to consult with a specialist for further evaluation.</p>
+        </div>
+      </div>
+
+      <div class="rec-grid">
+        <div class="rec-card urgent">
+          <div class="rec-icon">◈</div>
+          <h4>Neuropsychological Assessment</h4>
+          <p>Administer MMSE or MoCA cognitive assessment to quantify cognitive decline and establish a baseline for monitoring progression.</p>
+          <div class="rec-priority high">High Priority</div>
+        </div>
+        <div class="rec-card">
+          <div class="rec-icon">◎</div>
+          <h4>Medication Review</h4>
+          <p>Consider cholinesterase inhibitors (Donepezil, Rivastigmine) for symptomatic treatment. Consult specialist before prescribing.</p>
+          <div class="rec-priority medium">Medium Priority</div>
+        </div>
+        <div class="rec-card">
+          <div class="rec-icon">✦</div>
+          <h4>Lifestyle Interventions</h4>
+          <p>Recommend structured cognitive exercises, Mediterranean diet, and regular aerobic activity (150 min/week) to slow progression.</p>
+          <div class="rec-priority medium">Medium Priority</div>
+        </div>
+        <div class="rec-card">
+          <div class="rec-icon">◌</div>
+          <h4>Follow-up Imaging</h4>
+          <p>Schedule repeat MRI in 6 months. Compare hippocampal volume and white matter changes to track disease progression.</p>
+          <div class="rec-priority standard">Standard</div>
+        </div>
+        <div class="rec-card">
+          <div class="rec-icon">⊙</div>
+          <h4>Family Support Plan</h4>
+          <p>Initiate caregiver counseling and connect family with Alzheimer's Association resources for long-term care planning.</p>
+          <div class="rec-priority standard">Standard</div>
+        </div>
+        <div class="rec-card">
+          <div class="rec-icon">◇</div>
+          <h4>Referral Network</h4>
+          <p>Refer to a memory clinic or geriatric psychiatrist for specialized evaluation and enrollment in clinical trials if applicable.</p>
+          <div class="rec-priority standard">Standard</div>
+        </div>
+      </div>
+
+      <div class="card api-note mt">
+        <div class="api-tag">API Integration Point</div>
+        <code>GET /api/recommendations/{scan_id}</code>
+        <p>The recommendation engine uses prediction class + patient history to generate dynamic, context-aware clinical guidelines using an LLM or rule-based expert system.</p>
+      </div>
+    </section>
+
+    <!-- PATIENT MONITORING -->
+    <section id="sec-monitoring" class="dash-section">
+      <div class="section-header">
+        <div>
+          <h2>My Progress</h2>
+          <p class="section-sub">Longitudinal tracking of your health over time</p>
+        </div>
+        <span class="badge-amber coming">Coming Soon</span>
+      </div>
+
+      <div class="coming-soon-banner">
+        <div class="cs-icon">◌</div>
+        <h3>Health Monitoring Module</h3>
+        <p>This module will provide tracking of cognitive trends and health metrics over time.</p>
+      </div>
+
+      <div class="monitor-placeholders">
+        <div class="card monitor-chart-ph">
+          <div class="chart-ph-header">
+            <h4>Cognitive Score Trend</h4>
+            <span class="ph-label">Chart Placeholder</span>
+          </div>
+          <div class="chart-area">
+            <div class="chart-bars">
+              <div class="chart-bar-ph" style="height:60%"><span>Jan</span></div>
+              <div class="chart-bar-ph" style="height:55%"><span>Feb</span></div>
+              <div class="chart-bar-ph" style="height:62%"><span>Mar</span></div>
+              <div class="chart-bar-ph" style="height:48%"><span>Apr</span></div>
+              <div class="chart-bar-ph" style="height:44%"><span>May</span></div>
+              <div class="chart-bar-ph" style="height:40%"><span>Jun</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card monitor-chart-ph">
+          <div class="chart-ph-header">
+            <h4>Hippocampal Volume Change</h4>
+            <span class="ph-label">Chart Placeholder</span>
+          </div>
+          <div class="chart-area line-chart">
+            <svg viewBox="0 0 300 120" preserveAspectRatio="none">
+              <polyline points="0,80 50,75 100,65 150,70 200,55 250,45 300,40" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 2" opacity="0.5"/>
+              <circle cx="0" cy="80" r="4" fill="var(--accent)" opacity="0.4"/>
+              <circle cx="100" cy="65" r="4" fill="var(--accent)" opacity="0.4"/>
+              <circle cx="200" cy="55" r="4" fill="var(--accent)" opacity="0.4"/>
+              <circle cx="300" cy="40" r="4" fill="var(--accent)" opacity="0.4"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="card monitor-stats-ph">
+          <h4>Patient Overview</h4>
+          <div class="monitor-stat-rows">
+            <div class="monitor-stat-row ph-blur">
+              <span>Active Patients</span>
+              <span>—</span>
+            </div>
+            <div class="monitor-stat-row ph-blur">
+              <span>High Risk</span>
+              <span>—</span>
+            </div>
+            <div class="monitor-stat-row ph-blur">
+              <span>Stable Condition</span>
+              <span>—</span>
+            </div>
+            <div class="monitor-stat-row ph-blur">
+              <span>Follow-up Due</span>
+              <span>—</span>
+            </div>
+          </div>
+          <div class="integration-note">
+            Integrate with hospital EHR system and <strong>MySQL Database</strong> via HL7/FHIR API
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEEDBACK -->
+    <section id="sec-feedback" class="dash-section">
+      <div class="section-header">
+        <div>
+          <h2>Feedback</h2>
+          <p class="section-sub">Help us improve Neuro Vista with your experience</p>
+        </div>
+      </div>
+
+      <div class="feedback-layout">
+        <div class="card feedback-card">
+          <h4>Share Your Experience</h4>
+          <p class="section-sub mb">Your feedback helps improve our AI models for everyone</p>
+
+          <div class="form-group">
+            <label>Overall Rating</label>
+            <div class="star-rating" id="starRating">
+              <span class="star" onclick="setRating(1)">★</span>
+              <span class="star" onclick="setRating(2)">★</span>
+              <span class="star" onclick="setRating(3)">★</span>
+              <span class="star" onclick="setRating(4)">★</span>
+              <span class="star" onclick="setRating(5)">★</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Feedback Category</label>
+            <select class="form-input">
+              <option>Model Accuracy</option>
+              <option>User Interface</option>
+              <option>Feature Request</option>
+              <option>Bug Report</option>
+              <option>General</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Your Feedback</label>
+            <textarea class="form-input" rows="5" placeholder="Share your experience, suggestions, or report any issues with the analysis system..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Was the latest prediction accurate? (Optional)</label>
+            <div class="accuracy-btns">
+              <button class="acc-btn" onclick="this.classList.toggle('selected')">✓ Yes, Accurate</button>
+              <button class="acc-btn" onclick="this.classList.toggle('selected')">✗ No, Incorrect</button>
+              <button class="acc-btn" onclick="this.classList.toggle('selected')">~ Partially Correct</button>
+            </div>
+          </div>
+
+          <button class="btn-primary" onclick="submitFeedback()">Submit Feedback →</button>
+        </div>
+
+        <div class="feedback-side">
+          <div class="card feedback-stats">
+            <h4>Community Feedback</h4>
+            <div class="feedback-avg">
+              <span class="feedback-score">4.7</span>
+              <div>
+                <div class="star-display">★★★★★</div>
+                <span>Based on 124 reviews</span>
+              </div>
+            </div>
+            <div class="feedback-bars">
+              <div class="fb-row"><span>5★</span><div class="fb-bar-wrap"><div class="fb-bar" style="width:72%"></div></div><span>72%</span></div>
+              <div class="fb-row"><span>4★</span><div class="fb-bar-wrap"><div class="fb-bar" style="width:19%"></div></div><span>19%</span></div>
+              <div class="fb-row"><span>3★</span><div class="fb-bar-wrap"><div class="fb-bar" style="width:6%"></div></div><span>6%</span></div>
+              <div class="fb-row"><span>2★</span><div class="fb-bar-wrap"><div class="fb-bar" style="width:2%"></div></div><span>2%</span></div>
+              <div class="fb-row"><span>1★</span><div class="fb-bar-wrap"><div class="fb-bar" style="width:1%"></div></div><span>1%</span></div>
+            </div>
+          </div>
+
+          <div class="card feedback-quote">
+            <div class="quote-stars">★★★★★</div>
+            <p>"The system is very easy to use. The results are clear, and the NeuroBot helped me understand the next steps to take for my health."</p>
+            <span class="quote-author">— Patient User</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- SUCCESS TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
