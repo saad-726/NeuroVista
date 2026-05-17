@@ -5,3 +5,6 @@ mysql-connector-python
 passlib[bcrypt]
 python-multipart
 pydantic[email]
+numpy
+opencv-python
+tensorflow

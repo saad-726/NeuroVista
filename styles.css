@@ -921,6 +921,7 @@ em { font-family: 'Fraunces', serif; font-style: italic; }
   line-height: 1.5;
 }
 .api-note {
+  display: none !important; /* Hidden for video recording */
   background: #f8faff;
   border-color: var(--accent-mid);
   padding: 16px 20px;

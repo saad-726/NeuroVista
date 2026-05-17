@@ -112,33 +112,33 @@
         <div class="stat-widget">
           <div class="stat-widget-top">
             <span class="stat-widget-icon blue">◈</span>
-            <span class="stat-widget-trend up">+12%</span>
+            <span class="stat-widget-trend up" id="stat-total-trend">active</span>
           </div>
-          <div class="stat-widget-num">48</div>
+          <div class="stat-widget-num" id="stat-total-scans">0</div>
           <div class="stat-widget-label">Total Scans Analyzed</div>
         </div>
         <div class="stat-widget">
           <div class="stat-widget-top">
             <span class="stat-widget-icon red">⬡</span>
-            <span class="stat-widget-trend up">+3</span>
+            <span class="stat-widget-trend" id="stat-positive-trend">dementia</span>
           </div>
-          <div class="stat-widget-num">14</div>
+          <div class="stat-widget-num" id="stat-positive-scans">0</div>
           <div class="stat-widget-label">Positive Detections</div>
         </div>
         <div class="stat-widget">
           <div class="stat-widget-top">
             <span class="stat-widget-icon green">◎</span>
-            <span class="stat-widget-trend stable">stable</span>
+            <span class="stat-widget-trend stable">95.7% val</span>
           </div>
-          <div class="stat-widget-num">97.3%</div>
+          <div class="stat-widget-num" id="stat-avg-confidence">0.0%</div>
           <div class="stat-widget-label">Model Confidence Avg</div>
         </div>
         <div class="stat-widget">
           <div class="stat-widget-top">
             <span class="stat-widget-icon amber">◌</span>
-            <span class="stat-widget-trend down">-0.2s</span>
+            <span class="stat-widget-trend down">BiLSTM</span>
           </div>
-          <div class="stat-widget-num">1.8s</div>
+          <div class="stat-widget-num" id="stat-avg-time">0.0s</div>
           <div class="stat-widget-label">Avg Processing Time</div>
         </div>
       </div>
@@ -149,30 +149,9 @@
             <h4>My Recent Scans</h4>
             <a href="#" onclick="showSection('sec-history', document.querySelector('[onclick*=sec-history]'))" class="link-soft">View all →</a>
           </div>
-          <div class="scan-list">
-            <div class="scan-row">
-              <div class="scan-thumb mild-thumb">MRI</div>
-              <div class="scan-info">
-                <span class="scan-patient">Scan #1024</span>
-                <span class="scan-date">Today, 10:24 AM</span>
-              </div>
-              <span class="prediction-tag mild">Mild Demented</span>
-            </div>
-            <div class="scan-row">
-              <div class="scan-thumb normal-thumb">MRI</div>
-              <div class="scan-info">
-                <span class="scan-patient">Scan #1023</span>
-                <span class="scan-date">Yesterday, 09:11 AM</span>
-              </div>
-              <span class="prediction-tag normal">Non Demented</span>
-            </div>
-            <div class="scan-row">
-              <div class="scan-thumb mod-thumb">MRI</div>
-              <div class="scan-info">
-                <span class="scan-patient">Scan #1022</span>
-                <span class="scan-date">18 Apr 2026</span>
-              </div>
-              <span class="prediction-tag moderate">Moderate</span>
+          <div class="scan-list" id="recentScansList">
+            <div style="text-align:center; padding: 20px; color: var(--text-sub); font-size: 0.85rem;">
+              No scans analyzed yet.
             </div>
           </div>
         </div>
@@ -254,7 +233,7 @@
               <span class="btn-arrow">→</span>
             </button>
             <p class="upload-note">
-              ⚡ Powered by CNN+LSTM · Grad-CAM ready
+              ⚡ Powered by CNN+BiLSTM · Grad-CAM ready
             </p>
           </div>
 
@@ -280,40 +259,50 @@
       <div class="results-grid">
         <div class="card result-main">
           <div class="result-scan-wrap">
-            <div class="result-scan-placeholder">
-              <div class="scan-animation">
-                <div class="scan-line-anim"></div>
-                <span>BRAIN MRI</span>
-                <span class="scan-id">My Latest Scan</span>
+            <!-- Left Side: Original Scan -->
+            <div style="flex:1; display:flex; flex-direction:column; gap:8px;">
+              <div style="font-size:0.8rem; font-weight:600; color:var(--text-sub);">Original MRI Scan</div>
+              <img id="result-mri-img" src="" alt="Original MRI" style="display:none; width:100%; border-radius: var(--radius-sm); border: 1px solid var(--border); aspect-ratio: 1; object-fit: cover;" />
+              <div id="result-mri-placeholder" class="result-scan-placeholder">
+                <div class="scan-animation">
+                  <div class="scan-line-anim"></div>
+                  <span>BRAIN MRI</span>
+                  <span class="scan-id" style="font-size:0.75rem;">Waiting for upload</span>
+                </div>
               </div>
             </div>
-            <div class="heatmap-placeholder">
-              <div class="heatmap-label">Grad-CAM Heatmap</div>
-              <div class="heatmap-visual">
-                <div class="heat-spot s1"></div>
-                <div class="heat-spot s2"></div>
-                <div class="heat-spot s3"></div>
-                <span class="heatmap-note">AI Activation Map · Hippocampal Region</span>
+            <!-- Right Side: Heatmap -->
+            <div style="flex:1; display:flex; flex-direction:column; gap:8px;">
+              <div style="font-size:0.8rem; font-weight:600; color:var(--text-sub);">Grad-CAM Activation Map</div>
+              <img id="result-heatmap-img" src="" alt="Grad-CAM Heatmap" style="display:none; width:100%; border-radius: var(--radius-sm); border: 1px solid var(--border); aspect-ratio: 1; object-fit: cover;" />
+              <div id="result-heatmap-placeholder" class="heatmap-placeholder">
+                <div class="heatmap-label">Grad-CAM Heatmap</div>
+                <div class="heatmap-visual">
+                  <div class="heat-spot s1"></div>
+                  <div class="heat-spot s2"></div>
+                  <div class="heat-spot s3"></div>
+                  <span class="heatmap-note" style="font-size:0.75rem;">Hippocampal Region</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         <div class="card result-prediction">
-          <div class="prediction-badge mild">
+          <div id="res-prediction-badge" class="prediction-badge normal">
             <span class="pred-icon">◈</span>
-            Mild Demented
+            <span id="res-prediction-text">No Scan Run</span>
           </div>
           <div class="pred-confidence">
             <div class="conf-circle">
               <svg viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="40" fill="none" stroke="var(--border)" stroke-width="8"/>
-                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--accent)" stroke-width="8"
-                  stroke-dasharray="213" stroke-dashoffset="38" stroke-linecap="round"
+                <circle id="res-conf-svg-ring" cx="50" cy="50" r="40" fill="none" stroke="var(--accent)" stroke-width="8"
+                  stroke-dasharray="251.2" stroke-dashoffset="251.2" stroke-linecap="round"
                   transform="rotate(-90 50 50)"/>
               </svg>
               <div class="conf-text">
-                <span class="conf-num">84.2</span>
+                <span id="res-conf-num" class="conf-num">0.0</span>
                 <span class="conf-unit">%</span>
               </div>
             </div>
@@ -322,45 +311,45 @@
 
           <div class="all-classes">
             <h5>All Class Probabilities</h5>
-            <div class="class-row">
+            <div class="class-row" id="row-non-demented">
               <span class="class-name">Non Demented</span>
               <div class="class-bar-wrap">
-                <div class="class-bar" style="width:9%"></div>
+                <div class="class-bar normal-bar" id="bar-non-demented" style="width:0%"></div>
               </div>
-              <span class="class-pct">9.1%</span>
+              <span class="class-pct" id="pct-non-demented">0.0%</span>
             </div>
-            <div class="class-row">
+            <div class="class-row" id="row-very-mild">
               <span class="class-name">Very Mild</span>
               <div class="class-bar-wrap">
-                <div class="class-bar vmild" style="width:4%"></div>
+                <div class="class-bar vmild" id="bar-very-mild" style="width:0%"></div>
               </div>
-              <span class="class-pct">4.3%</span>
+              <span class="class-pct" id="pct-very-mild">0.0%</span>
             </div>
-            <div class="class-row highlight">
-              <span class="class-name">Mild Demented ✓</span>
+            <div class="class-row" id="row-mild-demented">
+              <span class="class-name">Mild Demented</span>
               <div class="class-bar-wrap">
-                <div class="class-bar mild-bar" style="width:84.2%"></div>
+                <div class="class-bar mild-bar" id="bar-mild-demented" style="width:0%"></div>
               </div>
-              <span class="class-pct">84.2%</span>
+              <span class="class-pct" id="pct-mild-demented">0.0%</span>
             </div>
-            <div class="class-row">
+            <div class="class-row" id="row-moderate">
               <span class="class-name">Moderate</span>
               <div class="class-bar-wrap">
-                <div class="class-bar mod-bar" style="width:2.4%"></div>
+                <div class="class-bar mod-bar" id="bar-moderate" style="width:0%"></div>
               </div>
-              <span class="class-pct">2.4%</span>
+              <span class="class-pct" id="pct-moderate">0.0%</span>
             </div>
           </div>
 
           <div class="result-meta">
-            <div class="meta-row"><span>Scan ID</span><span>#SCAN-2041-001</span></div>
-            <div class="meta-row"><span>Analyzed</span><span>Today, 10:24 AM</span></div>
-            <div class="meta-row"><span>Model</span><span>CNN+LSTM-v1</span></div>
-            <div class="meta-row"><span>Processing</span><span>1.72 seconds</span></div>
+            <div class="meta-row"><span>Scan ID</span><span id="res-meta-id">—</span></div>
+            <div class="meta-row"><span>Analyzed</span><span id="res-meta-date">—</span></div>
+            <div class="meta-row"><span>Model</span><span>CNN+BiLSTM-v1</span></div>
+            <div class="meta-row"><span>Processing</span><span id="res-meta-time">—</span></div>
           </div>
 
           <div class="result-actions">
-            <button class="btn-primary sm">⬇ Export Report</button>
+            <button class="btn-primary sm" onclick="exportReport()">⬇ Export Report</button>
             <button class="btn-ghost sm">Share Results</button>
           </div>
         </div>
@@ -380,13 +369,14 @@
           <h2>Scan History</h2>
           <p class="section-sub">All previous MRI analyses and their results</p>
         </div>
-        <div class="history-filters">
+        <div class="history-filters" style="display:flex; gap:10px; align-items:center;">
           <select class="form-input sm">
             <option>All Results</option>
             <option>Non Demented</option>
             <option>Mild Demented</option>
             <option>Moderate</option>
           </select>
+          <button class="btn-ghost sm" onclick="clearScanHistory()" style="color:var(--red); border-color:var(--red); padding:6px 12px; font-size:0.75rem; font-weight:600;">🗑 Clear History</button>
         </div>
       </div>
 
@@ -408,7 +398,7 @@
           </table>
         </div>
         <div class="table-footer">
-          <span>Showing 8 of 48 records</span>
+          <span id="history-showing-text">Showing 0 of 0 records</span>
           <div class="pagination">
             <button class="page-btn">←</button>
             <button class="page-btn active">1</button>
