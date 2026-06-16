@@ -8,3 +8,5 @@ pydantic[email]
 numpy
 opencv-python
 tensorflow
+google-generativeai
+python-dotenv

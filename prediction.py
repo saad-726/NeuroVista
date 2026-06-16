@@ -5,8 +5,9 @@ import numpy as np
 # Disable TensorFlow warnings for cleaner startup
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-MODEL_PATH = '/Users/saad/university/FYP/model_output/saved_model/cnn_lstm_brain_mri_v1.h5'
-CLASSES_PATH = '/Users/saad/university/FYP/model_output/saved_model/class_names.npy'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, 'model', 'cnn_lstm_brain_mri_v1.h5')
+CLASSES_PATH = os.path.join(BASE_DIR, 'model', 'class_names.npy')
 
 class BrainMRIPredictor:
     def __init__(self):

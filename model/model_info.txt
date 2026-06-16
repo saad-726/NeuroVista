@@ -1,0 +1,30 @@
+
+CNN-LSTM Brain MRI Classification Model
+========================================
+Architecture   : Conv(32→64→128→256) + BN + Dropout
+                 → Reshape(36, 256)
+                 → BiLSTM(128) → BiLSTM(64)
+                 → Dense(128) → Dense(64) → Softmax
+Enhancement    : CLAHE (clipLimit=2.0, tile=8×8) + Unsharp Mask (σ=2, w=1.5)
+Image size     : 96×96
+Classes        : ['MildDemented', 'ModerateDemented', 'NonDemented', 'VeryMildDemented']
+Best epoch     : 49
+Val Accuracy   : 95.71%
+Val Loss       : 0.4070
+Macro F1       : 95.75%
+Label smooth   : 0.05
+Class weights  : {0: 1.022377027148105, 1: 1.020639534883721, 2: 0.964968287526427, 3: 0.9942275856059946}
+
+── How to run inference on a new image ─────────────────────────
+import cv2, numpy as np
+from tensorflow.keras.models import load_model
+
+model   = load_model('cnn_lstm_brain_mri.h5')
+classes = np.load('class_names.npy', allow_pickle=True)
+
+img   = cv2.imread('new_mri.jpg')
+img   = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+img   = cv2.resize(img, (96, 96))
+arr   = img.astype('float32') / 255.0
+probs = model.predict(arr[np.newaxis])[0]
+print(classes[probs.argmax()], f'{probs.max()*100:.1f}%')

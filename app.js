@@ -6,6 +6,7 @@ let currentRating = 0;
 let uploadedFile = null;
 let currentUser = null;
 let scansHistory = []; // Global variable to store active user's scan records
+let chatHistory = [];
 
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -19,6 +20,9 @@ function checkSession() {
         updateUIWithUser(currentUser);
         loadStats(currentUser.id);
         initHistory();
+        if (window.location.pathname.includes('dashboard.html')) {
+            restoreChatHistory();
+        }
     } else {
         // Safe access check: Redirect guest users on the dashboard to the login page immediately
         const currentPath = window.location.pathname;
@@ -60,6 +64,76 @@ function showPage(pageId) {
         const el = document.getElementById(pageId);
         if (el) el.classList.add('active');
         window.scrollTo(0, 0);
+    }
+}
+
+function getInitialBotGreeting() {
+    return "Hello! I'm NeuroBot, your AI health assistant. I can help you understand your scan results, explain the stages of Alzheimer's, or provide wellness suggestions. How can I assist you today?";
+}
+
+function saveChatHistory() {
+    sessionStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+}
+
+function resetChatMessages() {
+    const chatMsgs = document.getElementById('chatMessages');
+    if (!chatMsgs) return;
+
+    chatHistory = [{ role: 'bot', text: getInitialBotGreeting() }];
+    saveChatHistory();
+
+    chatMsgs.innerHTML = `
+      <div class="chat-msg bot">
+        <div class="msg-avatar">N</div>
+        <div class="msg-bubble">${getInitialBotGreeting()}</div>
+      </div>
+      <div class="chat-msg bot typing" id="typingIndicator" style="display:none">
+        <div class="msg-avatar">N</div>
+        <div class="msg-bubble typing-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>`;
+    chatMsgs.scrollTop = chatMsgs.scrollHeight;
+}
+
+function restoreChatHistory() {
+    const storedHistory = sessionStorage.getItem('chatHistory');
+    if (!storedHistory) {
+        resetChatMessages();
+        return;
+    }
+
+    try {
+        const parsed = JSON.parse(storedHistory);
+        if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('Invalid chat history');
+        chatHistory = parsed;
+
+        const chatMsgs = document.getElementById('chatMessages');
+        if (!chatMsgs) return;
+
+        chatMsgs.innerHTML = '';
+        chatHistory.forEach(item => {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-msg ${item.role}`;
+            msgDiv.innerHTML = `
+                ${item.role === 'bot' ? '<div class="msg-avatar">N</div>' : ''}
+                <div class="msg-bubble">${item.text.replace(/\n/g, '<br>')}</div>`;
+            chatMsgs.appendChild(msgDiv);
+        });
+
+        const typing = document.createElement('div');
+        typing.className = 'chat-msg bot typing';
+        typing.id = 'typingIndicator';
+        typing.style.display = 'none';
+        typing.innerHTML = `
+            <div class="msg-avatar">N</div>
+            <div class="msg-bubble typing-dots">
+              <span></span><span></span><span></span>
+            </div>`;
+        chatMsgs.appendChild(typing);
+        chatMsgs.scrollTop = chatMsgs.scrollHeight;
+    } catch (error) {
+        resetChatMessages();
     }
 }
 
@@ -142,8 +216,14 @@ async function handleRegister() {
         return;
     }
 
+    const btn = document.querySelector('#registerForm button[type=submit]');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = "Sending code...";
+    }
+
     try {
-        const response = await fetch(`${API_URL}/register`, {
+        const response = await fetch(`${API_URL}/register-request`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ full_name, email, password })
@@ -152,17 +232,71 @@ async function handleRegister() {
         const data = await response.json();
 
         if (response.ok) {
-            showToast("Registration successful! Please sign in.");
-            setTimeout(() => {
-                showPage('page-login');
-            }, 1500);
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('confirmRegisterForm').style.display = 'block';
+            document.getElementById('confirmRegEmail').value = email;
+            showToast(data.message || "Verification code sent to your email address.");
         } else {
             showToast(data.detail || "Registration failed");
         }
     } catch (error) {
         console.error("Registration Error:", error);
         showToast("Cannot connect to server. Ensure FastAPI is running.");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = "Create Account →";
+        }
     }
+}
+
+async function handleRegisterConfirm() {
+    const email = document.getElementById('confirmRegEmail').value.trim();
+    const code = document.getElementById('regCode').value.trim();
+
+    if (!email || !code) {
+        showToast("Please enter the verification code");
+        return;
+    }
+
+    const btn = document.querySelector('#confirmRegisterForm button[type=submit]');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = "Verifying...";
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/register-confirm`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, code })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showToast(data.message || "Registration confirmed. Please sign in.");
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1500);
+        } else {
+            showToast(data.detail || "Invalid verification code");
+        }
+    } catch (error) {
+        console.error("Registration Confirm Error:", error);
+        showToast("Cannot connect to server. Ensure FastAPI is running.");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = "Verify & Finish";
+        }
+    }
+}
+
+function showRegisterStep() {
+    document.getElementById('registerForm').style.display = 'block';
+    document.getElementById('confirmRegisterForm').style.display = 'none';
+    document.getElementById('regCode').value = '';
 }
 
 function showDashboard(userData) {
@@ -193,8 +327,11 @@ function updateUIWithUser(userData) {
 
 function handleLogout() {
     localStorage.removeItem('currentUser');
+    sessionStorage.removeItem('chatHistory');
     currentUser = null;
     scansHistory = [];
+    chatHistory = [];
+    resetChatMessages();
     showPage('page-landing');
 }
 
@@ -360,9 +497,9 @@ function displayPredictionResult(scan) {
     mriImg.style.display = 'block';
     mriPlaceholder.style.display = 'none';
 
-    heatmapImg.src = `${rootUrl}${scan.heatmap_path}`;
-    heatmapImg.style.display = 'block';
-    heatmapPlaceholder.style.display = 'none';
+    // Grad-CAM is shown as an upcoming feature in the current demo
+    heatmapImg.style.display = 'none';
+    heatmapPlaceholder.style.display = 'flex';
 
     const badge = document.getElementById('res-prediction-badge');
     const text = document.getElementById('res-prediction-text');
@@ -443,7 +580,7 @@ function displayPredictionResult(scan) {
     }
 
     document.getElementById('res-meta-id').innerText = `#SCAN-${scan.id}`;
-    document.getElementById('res-meta-date').innerText = scan.scan_date;
+    document.getElementById('res-meta-date').innerText = formatLocalDatetime(scan.scan_date);
     document.getElementById('res-meta-time').innerText = "1.72 seconds";
 
     const insightBlock = document.querySelector('.insight-summary p');
@@ -552,7 +689,7 @@ async function initHistory() {
                         <td><strong>#SCAN-${s.id}</strong></td>
                         <td><span class="prediction-tag ${predClass}">${s.prediction}</span></td>
                         <td>${displayConfidence.toFixed(1)}%</td>
-                        <td>${s.scan_date}</td>
+                        <td>${formatLocalDatetime(s.scan_date)}</td>
                         <td><button class="view-btn" onclick="viewHistoricalScan(${idx})">View</button></td>
                     </tr>
                 `;
@@ -571,7 +708,7 @@ async function initHistory() {
                             <div class="scan-thumb ${predClass}-thumb">MRI</div>
                             <div class="scan-info">
                                 <span class="scan-patient">Scan #${s.id}</span>
-                                <span class="scan-date">${s.scan_date}</span>
+                                <span class="scan-date">${formatLocalDatetime(s.scan_date)}</span>
                             </div>
                             <span class="prediction-tag ${predClass}">${s.prediction}</span>
                         </div>
@@ -589,7 +726,7 @@ async function initHistory() {
 
 // --- CHATBOT ASSISTANT ---
 
-function sendChat() {
+async function sendChat() {
     const input = document.getElementById('chatInput');
     const text = input.value.trim();
     if (!text) return;
@@ -598,43 +735,75 @@ function sendChat() {
     input.value = '';
 
     const typing = document.getElementById('typingIndicator');
-    typing.style.display = 'flex';
-    
     const chatMsgs = document.getElementById('chatMessages');
-    chatMsgs.scrollTop = chatMsgs.scrollHeight;
+    if (typing && chatMsgs) {
+        chatMsgs.appendChild(typing);
+        typing.style.display = 'flex';
+    }
 
-    setTimeout(() => {
+    // Latest prediction inject karo (agar scan chal chuka hai)
+    let latestPrediction = null;
+    let latestConfidence = null;
+
+    if (scansHistory && scansHistory.length > 0) {
+        const latest = scansHistory[0];
+        latestPrediction = latest.prediction || null;
+        // confidence ko percentage mein convert karo agar decimal hai
+        if (latest.confidence !== undefined) {
+            latestConfidence = latest.confidence <= 1.0
+                ? latest.confidence * 100.0
+                : latest.confidence;
+        }
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: text,
+                user_id: currentUser ? currentUser.id : null,
+                latest_prediction: latestPrediction,
+                confidence: latestConfidence
+            })
+        });
+
+        const data = await response.json();
         typing.style.display = 'none';
-        const response = getBotResponse(text);
-        addChatMessage('bot', response);
-        chatMsgs.scrollTop = chatMsgs.scrollHeight;
-    }, 1500);
+        addChatMessage('bot', data.reply);
+
+    } catch (error) {
+        typing.style.display = 'none';
+        addChatMessage('bot', 'Connection error. Please try again.');
+    }
 }
 
 function addChatMessage(role, text) {
     const chatMsgs = document.getElementById('chatMessages');
     const msgDiv = document.createElement('div');
     msgDiv.className = `chat-msg ${role}`;
-    
+
+    const formatted = text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+
     msgDiv.innerHTML = `
         ${role === 'bot' ? '<div class="msg-avatar">N</div>' : ''}
-        <div class="msg-bubble">${text}</div>
+        <div class="msg-bubble">${formatted}</div>
     `;
-    
+
     chatMsgs.appendChild(msgDiv);
+    chatMsgs.scrollTop = chatMsgs.scrollHeight;
+
+    if (role !== 'typing') {
+        chatHistory.push({ role, text });
+        saveChatHistory();
+    }
 }
 
 function setChat(text) {
     document.getElementById('chatInput').value = text;
     sendChat();
-}
-
-function getBotResponse(input) {
-    const low = input.toLowerCase();
-    if (low.includes('stage')) return "Alzheimer's is often classified into 4 stages in clinical datasets: Non-Demented, Very Mild Demented, Mild Demented, and Moderate Demented. Our model is trained specifically on these categories.";
-    if (low.includes('accuracy')) return "The current CNN+BiLSTM model achieves 95.71% validation accuracy, leveraging deep neural sequence feature extraction.";
-    if (low.includes('medication') || low.includes('treatment')) return "Common wellness approaches for early-stage Alzheimer's include cognitive exercises and specialized nutrition. However, you should always consult a medical professional for a formal treatment plan.";
-    return "That's a great question about neurological health. I can provide general info, but please speak with your doctor for specific advice. Would you like to see your health guide?";
 }
 
 // --- STAR RATING FEEDBACK ---
@@ -675,6 +844,30 @@ function showToast(msg) {
     }, 4000);
 }
 
+function formatLocalDatetime(datetimeString) {
+    if (!datetimeString) return datetimeString;
+
+    const parts = datetimeString.trim().split(' ');
+    if (parts.length !== 2) {
+        return datetimeString;
+    }
+
+    const [datePart, timePart] = parts;
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, minute, second] = timePart.split(':').map(Number);
+
+    if ([year, month, day, hour, minute].some(n => Number.isNaN(n))) {
+        return datetimeString;
+    }
+
+    const dateObj = new Date(year, month - 1, day, hour, minute, second || 0);
+    if (isNaN(dateObj)) {
+        return datetimeString;
+    }
+
+    return dateObj.toLocaleString();
+}
+
 // --- DYNAMIC REPORT EXPORTER ---
 
 function exportReport() {
@@ -690,10 +883,16 @@ function exportReport() {
     const confidence = document.getElementById('res-conf-num').innerText + '%';
     const scanDate = document.getElementById('res-meta-date').innerText;
     const mriSrc = document.getElementById('result-mri-img').src;
-    const heatmapSrc = document.getElementById('result-heatmap-img').src;
+    const heatmapImgEl = document.getElementById('result-heatmap-img');
+    const heatmapSrc = heatmapImgEl && heatmapImgEl.style.display !== 'none' ? heatmapImgEl.src : null;
     
     let notes = "No additional observations.";
     const insightBlock = document.querySelector('.insight-summary p');
+    
+    const heatmapHtml = heatmapSrc ?
+        `<div class="img-container"><img src="${heatmapSrc}" /><div class="img-title">Grad-CAM Neural Activation Overlap</div></div>` :
+        `<div class="img-container coming-soon-box"><div class="coming-soon-label">Grad-CAM Coming Soon</div><div class="coming-soon-text">This visualization is planned for a future module and is not available in the current demo.</div></div>`;
+
     if (insightBlock) {
         notes = insightBlock.innerText;
     }
@@ -779,6 +978,31 @@ function exportReport() {
                     margin-top: 10px;
                     color: #475569;
                 }
+                .coming-soon-box {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    height: auto;
+                    min-height: 320px;
+                    padding: 24px;
+                    border-radius: 8px;
+                    border: 1px dashed #f59e0b;
+                    background: #fffbeb;
+                }
+                .coming-soon-label {
+                    font-size: 1rem;
+                    font-weight: 700;
+                    color: #b45309;
+                    margin-bottom: 12px;
+                }
+                .coming-soon-text {
+                    font-size: 0.9rem;
+                    color: #92400e;
+                    line-height: 1.5;
+                    text-align: center;
+                    max-width: 320px;
+                }
                 .diagnosis-section {
                     margin-bottom: 30px;
                     padding: 25px;
@@ -862,10 +1086,7 @@ function exportReport() {
                     <img src="${mriSrc}" />
                     <div class="img-title">Original T1-Weighted Brain MRI</div>
                 </div>
-                <div class="img-container">
-                    <img src="${heatmapSrc}" />
-                    <div class="img-title">Grad-CAM Neural Activation Overlap</div>
-                </div>
+                ${heatmapHtml}
             </div>
 
             <div class="disclaimer">

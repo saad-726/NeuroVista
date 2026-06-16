@@ -233,7 +233,7 @@
               <span class="btn-arrow">→</span>
             </button>
             <p class="upload-note">
-              ⚡ Powered by CNN+BiLSTM · Grad-CAM ready
+              ⚡ Powered by CNN+BiLSTM · Grad-CAM coming soon
             </p>
           </div>
 
@@ -276,12 +276,13 @@
               <div style="font-size:0.8rem; font-weight:600; color:var(--text-sub);">Grad-CAM Activation Map</div>
               <img id="result-heatmap-img" src="" alt="Grad-CAM Heatmap" style="display:none; width:100%; border-radius: var(--radius-sm); border: 1px solid var(--border); aspect-ratio: 1; object-fit: cover;" />
               <div id="result-heatmap-placeholder" class="heatmap-placeholder">
+                <div class="heatmap-status">Coming Soon</div>
                 <div class="heatmap-label">Grad-CAM Heatmap</div>
                 <div class="heatmap-visual">
                   <div class="heat-spot s1"></div>
                   <div class="heat-spot s2"></div>
                   <div class="heat-spot s3"></div>
-                  <span class="heatmap-note" style="font-size:0.75rem;">Hippocampal Region</span>
+                  <span class="heatmap-note" style="font-size:0.75rem;">Feature under development</span>
                 </div>
               </div>
             </div>
@@ -358,7 +359,7 @@
       <div class="card api-note mt">
         <div class="api-tag">API Integration Point</div>
         <code>GET /api/result/{scan_id}</code>
-        <p>Results are fetched from backend after prediction. The Grad-CAM heatmap URL is returned alongside classification outputs for overlay visualization.</p>
+        <p>Results are fetched from backend after prediction. Grad-CAM heatmap support is planned for an upcoming module.</p>
       </div>
     </section>
 
@@ -435,22 +436,6 @@
             <div class="msg-avatar">N</div>
             <div class="msg-bubble">
               Hello! I'm NeuroBot, your AI health assistant. I can help you understand your scan results, explain the stages of Alzheimer's, or provide wellness suggestions. How can I assist you today?
-            </div>
-          </div>
-          <div class="chat-msg user">
-            <div class="msg-bubble">
-              What does my "Mild Demented" result mean?
-            </div>
-          </div>
-          <div class="chat-msg bot">
-            <div class="msg-avatar">N</div>
-            <div class="msg-bubble">
-              <strong>Mild Dementia</strong> (also called Mild Alzheimer's) is the second clinical stage. Key characteristics include:<br/><br/>
-              • <strong>Memory Loss</strong>: Notable gaps in memory, especially recent events<br/>
-              • <strong>Daily Living</strong>: Some difficulty with complex tasks (finances, planning)<br/>
-              • <strong>Awareness</strong>: Patient may still recognize the symptoms<br/>
-              • <strong>Recommended action</strong>: Neuropsychological evaluation + imaging follow-up in 6 months<br/><br/>
-              Would you like me to generate a personalized health guide for you?
             </div>
           </div>
           <div class="chat-msg bot typing" id="typingIndicator" style="display:none">

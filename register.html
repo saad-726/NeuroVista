@@ -28,7 +28,7 @@
   </div>
 
   <div class="auth-right">
-    <form class="auth-form-wrap" onsubmit="event.preventDefault(); handleRegister();">
+    <form id="registerForm" class="auth-form-wrap" onsubmit="event.preventDefault(); handleRegister();">
       <h3>Create Account</h3>
       <p class="auth-sub">Set up your personal health profile</p>
 
@@ -49,6 +49,22 @@
         <input type="password" id="regConfirm" placeholder="Re-enter password" class="form-input" required />
       </div>
       <button type="submit" class="btn-form">Create Account →</button>
+      <p class="auth-switch">Already have an account? <a href="#" onclick="showPage('page-login')">Sign in</a></p>
+    </form>
+
+    <form id="confirmRegisterForm" class="auth-form-wrap" style="display:none;" onsubmit="event.preventDefault(); handleRegisterConfirm();">
+      <h3>Confirm Email</h3>
+      <p class="auth-sub" id="registerSubText">Enter the 6-digit code sent to your email address.</p>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="confirmRegEmail" class="form-input" readonly />
+      </div>
+      <div class="form-group">
+        <label>Verification Code</label>
+        <input type="text" id="regCode" placeholder="Enter 6-digit code" class="form-input" required maxlength="6" pattern="\d{6}" />
+      </div>
+      <button type="submit" class="btn-form">Verify & Finish</button>
       <p class="auth-switch">Already have an account? <a href="#" onclick="showPage('page-login')">Sign in</a></p>
     </form>
   </div>
