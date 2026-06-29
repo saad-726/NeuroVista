@@ -240,9 +240,9 @@ Then open `index.html` in a browser or serve the frontend via a local server.
 | Name | Role |
 |---|---|
 | **Saad Ahmed** | Lead Developer — Full-stack development, CNN-BiLSTM model integration, GradCAM pipeline, OTP auth system, API design |
-| **Shamir Hassan** | Research & Development — Dataset research, model training support, testing and validation |
-| **Aisha Zaheer** | Documentation & Development — Project documentation, UI/UX feedback, quality assurance, Gemini chatbot |
-| **Mr Ahsan Abbass** | Supervisor |
+| **Shahmir Hassan** | Research & Junior Developer — Dataset research, model training support, testing and validation |
+| **Ayesha Zaheer** | Documentation & Development — Project documentation, UI/UX feedback, quality assurance, Gemini chatbot |
+| **Mr Ahsan Abbass** | Supervision of complete project.|
 
 ---
 
