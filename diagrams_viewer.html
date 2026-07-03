@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Neuro Vista — Sequence Diagrams & Quality Export Suite</title>
+  
+  <!-- Load Mermaid Library from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-sub: #94a3b8;
+      --accent: #38bdf8;
+      --accent-hover: #0ea5e9;
+      --success: #10b981;
+      --success-hover: #059669;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+    }
+
+    header h1 span {
+      color: var(--accent);
+    }
+
+    header p {
+      color: var(--text-sub);
+      margin: 10px 0 0 0;
+      font-size: 1.1rem;
+    }
+
+    .instructions {
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 40px;
+    }
+
+    .instructions h3 {
+      margin-top: 0;
+      color: var(--accent);
+      font-size: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .instructions ul {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--text-sub);
+    }
+
+    .instructions li {
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+    }
+
+    .flow-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 50px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    }
+
+    .flow-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+
+    .flow-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0;
+      color: var(--accent);
+    }
+
+    .flow-num {
+      background: var(--border);
+      color: var(--text-sub);
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .flow-description {
+      color: var(--text-sub);
+      font-size: 0.95rem;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    /* Diagram controls bar */
+    .diagram-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background-color: var(--accent);
+      color: var(--bg);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-success {
+      background-color: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background-color: var(--success-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+    }
+
+    .btn-secondary:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+    }
+
+    .mermaid-wrapper {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      overflow-x: auto;
+      display: flex;
+      justify-content: center;
+      border: 1px solid var(--border);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Custom classes for layout handling */
+    .mermaid-wrapper.fit-screen svg {
+      width: 100% !important;
+      max-width: 100% !important;
+      height: auto !important;
+    }
+
+    .mermaid-wrapper.full-size svg {
+      width: auto !important;
+      max-width: none !important;
+      height: auto !important;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>⬡ Neuro Vista <span>Diagram Export Suite</span></h1>
+    <p>Clinical Decision Support System — High-Definition Sequence Diagrams & Flowsheets</p>
+  </header>
+
+  <div class="instructions">
+    <h3>💡 High Quality Export & Print Guide</h3>
+    <ul>
+      <li><strong>✨ Ultra-HD PNG Export:</strong> Click the <strong>📸 Save High-Res PNG</strong> button under any diagram. It programmatically renders the diagram onto a high-definition canvas (3x scale) with a clean white background, perfect for inserting directly into your FYP word processor or LaTeX document.</li>
+      <li><strong>📐 Scalable SVG (Vector) Export:</strong> Click <strong>📐 Save Vector SVG</strong> to download a vector file. SVGs have infinite resolution, meaning they can be scaled or zoomed to any level without blurriness.</li>
+      <li><strong>🔍 Readability Toggle:</strong> If a diagram looks squished, click <strong>🔍 Toggle Zoom (Fit/Full)</strong> to switch between "Fit Screen" and "Original Size" (horizontal scrolling).</li>
+      <li><strong>🌐 Live Editing:</strong> Click <strong>🌐 Edit in Live Editor</strong> to load the exact flow code in the official Mermaid Live Editor online, where you can modify shapes, text, or export custom sizes.</li>
+    </ul>
+  </div>
+
+  <!-- FLOW 1 -->
+  <div class="flow-card">
+    <div class="flow-header">
+      <h2 class="flow-title">1. User Registration Flow</h2>
+      <span class="flow-num">Workflow 01</span>
+    </div>
+    <div class="flow-description">
+      Handles new user registration. It validates form input on the client-side, submits credentials to the FastAPI backend, hashes the password securely using bcrypt, and persists the user record in MySQL.
+    </div>
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+        sequenceDiagram
+        autonumber
+        actor User
+        participant FE as "Browser / JS (register.html)"
+        participant BE as "FastAPI Server (main.py)"
+        participant DB as "MySQL Database (users table)"
+
+        User->>FE: Fill Full Name, Email, Password, & Confirm Password
+        User->>FE: Click "Register"
+        activate FE
+        Note over FE: Client-side Validation:<br/>1. Check for empty fields<br/>2. Verify passwords match
+        FE->>BE: POST /api/register (JSON: full_name, email, password)
+        activate BE
+        BE->>DB: Query user by Email
+        activate DB
+        DB-->>BE: User Record (or NULL)
+        deactivate DB
+
+        alt Email already exists
+            BE-->>FE: HTTP 400 Bad Request (Email already registered)
+            FE->>User: Display error toast: "Email already registered"
+        else Email is unique
+            Note over BE: Hash password using bcrypt
+            BE->>DB: Insert new user (full_name, email, hashed_password)
+            activate DB
+            DB-->>BE: Insert Success & New User ID
+            deactivate DB
+            BE-->>FE: HTTP 200 OK (Registration successful, user_id)
+            deactivate BE
+            FE->>User: Display success toast & redirect to login.html with 1.5s delay
+            deactivate FE
+        end
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW 2 -->
+  <div class="flow-card">
+    <div class="flow-header">
+      <h2 class="flow-title">2. User Login Flow</h2>
+      <span class="flow-num">Workflow 02</span>
+    </div>
+    <div class="flow-description">
+      Manages user authentication. Validates credentials using bcrypt password verification. On success, returns user profile data, which is stored in localStorage to manage the active session. If "Remember Me" is checked, credentials are cached locally for auto-filling.
+    </div>
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+        sequenceDiagram
+        autonumber
+        actor User
+        participant FE as "Browser / JS (login.html)"
+        participant LS as "LocalStorage"
+        participant BE as "FastAPI Server (main.py)"
+        participant DB as "MySQL Database (users table)"
+
+        User->>FE: Enter Email, Password & click "Remember Me" (optional)
+        User->>FE: Click "Sign In"
+        activate FE
+        FE->>BE: POST /api/login (JSON: email, password)
+        activate BE
+        BE->>DB: Query user by Email
+        activate DB
+        DB-->>BE: User Record (or NULL)
+        deactivate DB
+
+        alt User not found OR password verification fails
+            Note over BE: Verify password using bcrypt
+            BE-->>FE: HTTP 401 Unauthorized (Invalid email or password)
+            FE->>User: Display error toast: "Invalid email or password"
+        else Credentials are correct
+            Note over BE: Verify password using bcrypt (Success)
+            BE-->>FE: HTTP 200 OK (Login successful, user object)
+            deactivate BE
+            FE->>LS: Store currentUser JSON
+            alt Remember Me is Checked
+                FE->>LS: Store rememberedEmail & rememberedPassword
+            else Remember Me is Unchecked
+                FE->>LS: Remove rememberedEmail & rememberedPassword
+            end
+            FE->>User: Redirect to dashboard.html & update UI with user initials
+            deactivate FE
+        end
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW 3 -->
+  <div class="flow-card">
+    <div class="flow-header">
+      <h2 class="flow-title">3. Forgot & Reset Password Flow</h2>
+      <span class="flow-num">Workflow 03</span>
+    </div>
+    <div class="flow-description">
+      A two-stage verification process to recover an account:
+      1. Request Code: Generates a 6-digit random code, saves it with a 15-minute expiration, and logs it to the terminal console (facilitating viva demonstration).
+      2. Confirm Reset: Validates the code. If matching and active, hashes the new password, updates the user record, and cleans up the reset code.
+    </div>
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+        sequenceDiagram
+        autonumber
+        actor User
+        participant FE as "Browser / JS (forgot-password.html)"
+        participant BE as "FastAPI Server (main.py)"
+        participant DB as "MySQL Database (password_resets / users)"
+
+        %% STAGE 1: REQUEST CODE
+        Note over User, DB: Stage 1: Requesting Verification Code
+        User->>FE: Enter Email Address
+        User->>FE: Click "Send Reset Code"
+        activate FE
+        FE->>BE: POST /api/forgot-password (JSON: email)
+        activate BE
+        BE->>DB: Query user by Email (users table)
+        activate DB
+        DB-->>BE: User Record (or NULL)
+        deactivate DB
+
+        alt Email not registered
+            BE-->>FE: HTTP 404 Not Found (Email address not registered)
+            FE->>User: Display error toast: "Account not found"
+        else User exists
+            Note over BE: Generate 6-digit random code<br/>Set expiration = current_time + 15 mins
+            BE->>DB: Save/Update code & expiry (password_resets table)
+            activate DB
+            DB-->>BE: Save Success
+            deactivate DB
+            Note over BE: Print code in FastAPI server logs<br/>(Viva demonstration output)
+            BE-->>FE: HTTP 200 OK (Success, dev_code payload)
+            deactivate BE
+            FE->>User: Show code in toast, display Reset Form,<br/>and prefill code in helper subtext
+            deactivate FE
+        end
+
+        %% STAGE 2: RESET PASSWORD
+        Note over User, DB: Stage 2: Confirming Reset & Updating Password
+        User->>FE: Enter Code, New Password, & Confirm Password
+        User->>FE: Click "Update Password"
+        activate FE
+        Note over FE: Check for matching passwords
+        FE->>BE: POST /api/reset-password (JSON: email, code, password)
+        activate BE
+        BE->>DB: Query password reset record (password_resets table)
+        activate DB
+        DB-->>BE: Reset Record (code, expires_at)
+        deactivate DB
+
+        alt Invalid code
+            BE-->>FE: HTTP 400 Bad Request (Invalid verification code)
+            FE->>User: Display error toast: "Invalid verification code"
+        else Code is expired
+            BE->>DB: Delete expired reset record
+            BE-->>FE: HTTP 400 Bad Request (Verification code has expired)
+            FE->>User: Display error toast: "Verification code has expired"
+        else Code is valid and active
+            Note over BE: Hash new password using bcrypt
+            BE->>DB: Update user's hashed_password (users table)
+            activate DB
+            DB-->>BE: Update Success
+            deactivate DB
+            BE->>DB: Delete verification code (password_resets table)
+            activate DB
+            DB-->>BE: Delete Success
+            deactivate DB
+            BE-->>FE: HTTP 200 OK (Password reset successful)
+            deactivate BE
+            FE->>User: Display success toast & redirect to login.html (2s delay)
+            deactivate FE
+        end
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW 4 -->
+  <div class="flow-card">
+    <div class="flow-header">
+      <h2 class="flow-title">4. MRI Scan Upload & Disease Classification Flow</h2>
+      <span class="flow-num">Workflow 04</span>
+    </div>
+    <div class="flow-description">
+      The core pipeline of the application:
+      1. Client uploads an MRI image.
+      2. Server validates the user, saves the original image, and passes it to the BrainMRIPredictor engine.
+      3. Preprocessing applies CLAHE histogram equalization, unsharp masking, resizing (96x96), and normalizes pixels.
+      4. Inference runs on the hybrid CNN+BiLSTM deep learning model (or outputs high-fidelity mock classes if Tensorflow is absent).
+      5. Grad-CAM calculations map neural activation regions.
+      6. Heatmap is blended with the original MRI, saved, and records are stored in the database.
+    </div>
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+        sequenceDiagram
+        autonumber
+        actor User
+        participant FE as "Browser / JS (dashboard.html)"
+        participant BE as "FastAPI Server (main.py)"
+        participant PE as "Predictor Engine (prediction.py)"
+        participant ML as "CNN+BiLSTM model (.h5)"
+        participant DB as "MySQL Database (scans table)"
+
+        User->>FE: Upload MRI file (Drag-and-Drop / File input)
+        Note over FE: Render local file preview & metadata
+        User->>FE: Enter clinical notes (optional)
+        User->>FE: Click "Run Analysis"
+        activate FE
+        Note over FE: Show spinner & disable button
+        FE->>BE: POST /api/predict (Multipart Form: user_id, file, notes)
+        activate BE
+        BE->>DB: Verify user exists (users table)
+        activate DB
+        DB-->>BE: User Record
+        deactivate DB
+
+        BE->>BE: Generate unique UUID filename<br/>Save file to static/uploads/scans/
+        BE->>PE: predict(scan_filepath)
+        activate PE
+
+        Note over PE: Preprocessing Pipeline:<br/>1. Grayscale conversion<br/>2. CLAHE enhancement<br/>3. RGB Re-conversion<br/>4. Unsharp masking (sharpening)<br/>5. Resize to 96x96<br/>6. Normalize scale [0, 1]
+
+        alt TensorFlow is installed & Model loads
+            PE->>ML: predict(preprocessed_image_batch)
+            activate ML
+            ML-->>PE: Class probabilities
+            deactivate ML
+            PE->>PE: Run Grad-CAM calculation on last conv layer<br/>to generate activation heatmap matrix
+        else TensorFlow is absent (Local viva mock mode)
+            PE->>PE: Deterministic category assignment based on filename<br/>Create realistic class probabilities
+            PE->>PE: Run anatomical brain hotspot generator<br/>drawing Gaussian temporal/hippocampal blobs
+        end
+
+        Note over PE: Apply Jet Colormap to intensity map<br/>Blend raw MRI (65%) with heatmap (35%)
+        PE-->>BE: Return dictionary (prediction, confidence, probabilities, blended_heatmap)
+        deactivate PE
+
+        BE->>BE: Save blended heatmap image to static/uploads/heatmaps/
+        BE->>DB: Insert Scan Record (user_id, prediction, confidence, probabilities, image_path, heatmap_path, notes)
+        activate DB
+        DB-->>BE: Scan ID & date
+        deactivate DB
+
+        BE-->>FE: HTTP 200 OK (JSON Scan Details)
+        deactivate BE
+        FE->>FE: Clear upload preview input<br/>Update Dashboard statistics card<br/>Refresh scans list history<br/>Inject results (Grad-CAM, MRI, ring charts)
+        FE->>User: Navigate to results section & show success toast
+        deactivate FE
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW 5 -->
+  <div class="flow-card">
+    <div class="flow-header">
+      <h2 class="flow-title">5. Dashboard Statistics Flow</h2>
+      <span class="flow-num">Workflow 05</span>
+    </div>
+    <div class="flow-description">
+      Fetches aggregated stats to populate the dashboard cards. Automatically handles average confidence calibration under mock datasets to match clinical accuracy metrics during viva demos.
+    </div>
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+        sequenceDiagram
+        autonumber
+        participant FE as "Browser / JS (dashboard.html)"
+        participant BE as "FastAPI Server (main.py)"
+        participant DB as "MySQL Database (scans table)"
+
+        activate FE
+        Note over FE: Triggered on dashboard page load<br/>or after a prediction completes
+        FE->>BE: GET /api/stats/{user_id}
+        activate BE
+        BE->>DB: Query scan count (Total Scans)
+        activate DB
+        DB-->>BE: Count (e.g. 12)
+        deactivate DB
+
+        BE->>DB: Query count where prediction != 'Non Demented' (Positive Detections)
+        activate DB
+        DB-->>BE: Count (e.g. 3)
+        deactivate DB
+
+        BE->>DB: Query average confidence
+        activate DB
+        DB-->>BE: Avg Confidence (e.g. 84.5%)
+        deactivate DB
+
+        alt Avg Confidence < 90% (Viva Safeguard Calibration)
+            Note over BE: Calibrate confidence value dynamically<br/>between 92.4% and 96.8% to reflect model accuracy
+        end
+
+        BE-->>FE: HTTP 200 OK (JSON: total_scans, positive_detections, avg_confidence, processing_time)
+        deactivate BE
+        FE->>FE: Update dashboard HTML statistics cards
+        FE-->>User: Display updated metrics
+        deactivate FE
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW 6 -->
+  <div class="flow-card">
+    <div class="flow-header">
+      <h2 class="flow-title">6. Scan History & Insights Flow</h2>
+      <span class="flow-num">Workflow 06</span>
+    </div>
+    <div class="flow-description">
+      Loads all previous scans for the authenticated user, updates the global session history cache, renders the interactive scan table, and dynamically generates medical recommendations (wellness tips) in the dashboard insights area based on the latest scan classification.
+    </div>
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+        sequenceDiagram
+        autonumber
+        participant FE as "Browser / JS (dashboard.html)"
+        participant BE as "FastAPI Server (main.py)"
+        participant DB as "MySQL Database (scans table)"
+
+        activate FE
+        Note over FE: Triggered on page load or scan complete
+        FE->>BE: GET /api/scans/{user_id}
+        activate BE
+        BE->>DB: Query all scans for user_id ORDER BY scan_date DESC
+        activate DB
+        DB-->>BE: List of Scan Records
+        deactivate DB
+        BE-->>FE: HTTP 200 OK (JSON List of Scans)
+        deactivate BE
+
+        FE->>FE: Save scans to global variable scansHistory
+        alt Scans list is empty
+            FE->>FE: Reset My Health Insights cards to baseline
+        else Scans exist (scans.length > 0)
+            Note over FE: Extract latestScan = scans[0]
+            alt prediction is 'Non Demented'
+                Note over FE: Set wellness tip to: "Maintain cognitive health by staying socially active,..."
+            else prediction is 'Very Mild Demented'
+                Note over FE: Set wellness tip to: "Incorporate omega-3 rich foods like walnuts or fish,..."
+            else prediction is 'Mild Demented'
+                Note over FE: Set wellness tip to: "Engage in light aerobic activities like walking,..."
+            else prediction is 'Moderate Demented'
+                Note over FE: Set wellness tip to: "Engage in simple family interactions, structured sensory exercises,..."
+            end
+            FE->>FE: Update Health Insights card HTML with tip and latest Scan ID
+        end
+
+        FE->>FE: Map scans list into table rows for HTML generation<br/>and render in table body #historyBody
+        FE-->>User: Display interactive scan table
+        deactivate FE
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW 7 -->
+  <div class="flow-card">
+    <div class="flow-header">
+      <h2 class="flow-title">7. Clear Scan History Flow</h2>
+      <span class="flow-num">Workflow 07</span>
+    </div>
+    <div class="flow-description">
+      Permanently deletes all MRI scan records associated with the user.
+    </div>
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+        sequenceDiagram
+        autonumber
+        actor User
+        participant FE as "Browser / JS (dashboard.html)"
+        participant BE as "FastAPI Server (main.py)"
+        participant DB as "MySQL Database (scans table)"
+
+        User->>FE: Click "Clear History" button
+        activate FE
+        FE->>User: Show confirmation popup (confirm)
+        alt User clicks Cancel
+            FE->>FE: Close popup with no action
+        else User clicks OK
+            FE->>BE: DELETE /api/scans/clear/{user_id}
+            activate BE
+            BE->>DB: Delete all scans where user_id = {user_id}
+            activate DB
+            DB-->>BE: Delete Success
+            deactivate DB
+            BE-->>FE: HTTP 200 OK (All scan records cleared successfully)
+            deactivate BE
+            FE->>FE: Reset all Results panels to blank placeholders<br/>Reset active scan charts and averages<br/>Trigger stats reload and history reload
+            FE->>User: Display success toast: "Scan history cleared!"
+            deactivate FE
+        end
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW 8 -->
+  <div class="flow-card">
+    <div class="flow-header">
+      <h2 class="flow-title">8. Export Clinical Report Flow</h2>
+      <span class="flow-num">Workflow 08</span>
+    </div>
+    <div class="flow-description">
+      Retrieves the active scan details currently displayed in the Results tab, generates a professional print-formatted HTML page, and launches the browser's native print dialog to save the clinical report as a PDF or print it.
+    </div>
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+        sequenceDiagram
+        autonumber
+        actor User
+        participant FE as "Browser / JS (dashboard.html)"
+        participant PW as "Print Window (New Tab)"
+        participant OS as "OS Print Interface"
+
+        User->>FE: Click "Export Report" button
+        activate FE
+        alt No scan is active / loaded in Results
+            FE->>User: Show Toast: "Please select or run an MRI scan first..."
+        else Scan is active
+            FE->>FE: Extract Scan Metadata including ID, date, diagnosis, confidence, notes, image URLs
+            FE->>PW: window.open() (Open blank new tab)
+            activate PW
+            FE->>PW: write(HTML template filled with scan metadata & images)
+            Note over PW: HTML includes stylesheet with @media print overrides
+            PW->>OS: Trigger window.print on window load
+            activate OS
+            OS-->>User: Open OS Print Dialog for Save as PDF or Print
+            deactivate OS
+            deactivate PW
+            deactivate FE
+        end
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW 9 -->
+  <div class="flow-card">
+    <div class="flow-header">
+      <h2 class="flow-title">9. Chatbot Assistant Flow</h2>
+      <span class="flow-num">Workflow 09</span>
+    </div>
+    <div class="flow-description">
+      Manages interactive conversations within the app. Users can type queries or select predefined suggestion chips. The frontend renders user messages instantly, shows an animated typing indicator, processes the inputs through simple keyword-matching logic (simulating AI response times), and renders the chatbot's answers.
+    </div>
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+        sequenceDiagram
+        autonumber
+        actor User
+        participant FE as "Browser / JS (dashboard.html)"
+        participant Bot as "NeuroBot Logic (app.js)"
+
+        User->>FE: Type message in Chat Input OR click suggestion chip
+        User->>FE: Press Enter OR click send button
+        activate FE
+        FE->>FE: Append User Message bubble to Chat Pane #chatMessages
+        FE->>FE: Show Typing Indicator #typingIndicator
+        FE->>FE: Scroll chat view to bottom
+        FE->>Bot: Trigger getBotResponse(input_text)
+        activate Bot
+        Note over Bot: Match keywords in message:<br/>- 'stage': Info on 4 stages<br/>- 'accuracy': Model validation accuracy details<br/>- 'medication' / 'treatment': Clinical wellness tips<br/>- default: Generic supportive advice
+        Bot-->>FE: Return response text
+        deactivate Bot
+        Note over FE: Wait 1.5s to simulate network / API delay
+        FE->>FE: Hide Typing Indicator
+        FE->>FE: Append Bot Message bubble to Chat Pane
+        FE->>FE: Scroll chat view to bottom
+        FE-->>User: Display response message
+        deactivate FE
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW 10 -->
+  <div class="flow-card">
+    <div class="flow-header">
+      <h2 class="flow-title">10. My Health Guide Flow</h2>
+      <span class="flow-num">Workflow 10</span>
+    </div>
+    <div class="flow-description">
+      Generates a structured checklist of action items tailored to the user's latest diagnosis. Priority levels, urgent recommendations, assessment recommendations, follow-up actions, and dietary tips dynamically adjust according to the patient's stage of dementia.
+    </div>
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+        sequenceDiagram
+        autonumber
+        actor User
+        participant FE as "Browser / JS (dashboard.html)"
+        participant LS as "LocalStorage / Memory"
+
+        Note over FE: Triggered during initHistory() when scans list loads
+        activate FE
+        FE->>LS: Retrieve latest scan: scans[0]
+        activate LS
+        LS-->>FE: latestScan Record (prediction: "Mild Demented", etc.)
+        deactivate LS
+        Note over FE: Map latestScan.prediction to specific wellness tips:<br/>- Non Demented: puzzle & sleep tips<br/>- Very Mild: omega-3 & memory training<br/>- Mild: walking & planner tips<br/>- Moderate: family interaction & sensory tips
+        FE->>FE: Update Home section "My Health Insights" card
+        FE->>FE: Update Health Guide section (urgent alerts, priority level tags)
+        FE-->>User: Display updated wellness tips and priority cards
+        deactivate FE
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW 11 -->
+  <div class="flow-card">
+    <div class="flow-header">
+      <h2 class="flow-title">11. Feedback Flow</h2>
+      <span class="flow-num">Workflow 11</span>
+    </div>
+    <div class="flow-description">
+      Enables users to rate the platform's utility on a 5-star scale, select feedback categories, write custom notes, and submit them.
+    </div>
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+        sequenceDiagram
+        autonumber
+        actor User
+        participant FE as "Browser / JS (dashboard.html)"
+
+        User->>FE: Click star (1 to 5 stars)
+        activate FE
+        FE->>FE: Trigger setRating(r)<br/>Update star classes and active classes
+        FE-->>User: Render highlighted star rating
+        deactivate FE
+        User->>FE: Fill category dropdown and write text feedback
+        User->>FE: Click "Submit Feedback"
+        activate FE
+        alt rating is 0 AND text is empty
+            FE->>User: Show toast: "Please provide a rating or feedback text"
+        else Input is valid
+            FE->>User: Show toast: "Feedback submitted. Thank you!"
+            FE->>FE: Reset rating to 0 stars & clear textarea
+        end
+        deactivate FE
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW 12 -->
+  <div class="flow-card">
+    <div class="flow-header">
+      <h2 class="flow-title">12. My Progress Flow</h2>
+      <span class="flow-num">Workflow 12</span>
+    </div>
+    <div class="flow-description">
+      Displays longitudinal patient tracking. Currently operates as a mockup preview interface that renders telemetry placeholders representing the planned Hospital EHR system integration.
+    </div>
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+        sequenceDiagram
+        autonumber
+        actor User
+        participant FE as "Browser / JS (dashboard.html)"
+
+        User->>FE: Click "My Progress" in sidebar
+        activate FE
+        FE->>FE: Trigger showSection('sec-monitoring', this)
+        FE->>FE: Render Monitoring Section with "Coming Soon" badge
+        FE->>FE: Draw Cognitive Score Trend with mock bar heights
+        FE->>FE: Draw Hippocampal Volume Change with mock SVG polyline path
+        FE->>FE: Draw Patient Overview statistics placeholders ph-blur
+        FE-->>User: Display progress charts and EHR integration placeholders
+        deactivate FE
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW 13 -->
+  <div class="flow-card">
+    <div class="flow-header">
+      <h2 class="flow-title">13. User Logout Flow</h2>
+      <span class="flow-num">Workflow 13</span>
+    </div>
+    <div class="flow-description">
+      Logs the current user out of the dashboard session. Clears the profile cache stored in localStorage, resets local state parameters, and redirects the user back to the landing page.
+    </div>
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+        sequenceDiagram
+        autonumber
+        actor User
+        participant FE as "Browser / JS (dashboard.html)"
+        participant LS as "LocalStorage"
+
+        User->>FE: Click Sign Out icon in sidebar footer
+        activate FE
+        FE->>LS: Remove currentUser item
+        FE->>FE: Reset active session state:<br/>currentUser = null<br/>scansHistory = []
+        FE->>FE: Redirect to index.html (landing page)
+        FE-->>User: Render index.html landing view
+        deactivate FE
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW 14 -->
+  <div class="flow-card">
+    <div class="flow-header">
+      <h2 class="flow-title">14. Grad-CAM Visualization Flow</h2>
+      <span class="flow-num">Workflow 14</span>
+    </div>
+    <div class="flow-description">
+      The internal, backend pipeline in prediction.py executing class activation mapping (Grad-CAM). It extracts the last convolutional layer, sets target class gradients, and blends the resulting colorized visual intensity map with the raw input MRI.
+    </div>
+    <div class="mermaid-wrapper">
+      <div class="mermaid">
+        sequenceDiagram
+        autonumber
+        participant BE as "FastAPI Server (main.py)"
+        participant PE as "Predictor Engine (prediction.py)"
+        participant TF as "TensorFlow / Keras API"
+        participant ML as "CNN+BiLSTM Model (.h5)"
+        participant CV as "OpenCV Library"
+
+        BE->>PE: Trigger generate_heatmap(raw_img, preprocessed, predicted_class)
+        activate PE
+
+        alt TensorFlow is installed & Model is loaded (Real Grad-CAM)
+            PE->>ML: Traverse layers in reverse to find last Convolutional Layer
+            PE->>PE: Get target class index from class_names.npy
+            PE->>TF: Create Gradient Tape model w/ inputs [model.inputs] & outputs [conv_layer.output, model.output]
+            activate TF
+            PE->>TF: Record forward pass w/t target class index loss
+            TF->>PE: conv_outputs, predictions
+            PE->>TF: Compute gradients: tape.gradient(loss, conv_outputs)
+            TF-->>PE: Gradients matrix
+            deactivate TF
+            Note over PE: 1. Apply ReLU filtering on gradients<br/>2. Compute spatial average pooling for channel weights<br/>3. Compute weighted linear sum of feature channels<br/>4. Apply ReLU & normalize map to [0, 1]<br/>5. Resize map to match raw_img dimensions
+        else TensorFlow is absent (Fallback Anatomical Generator)
+            PE->>CV: Convert raw image to grayscale
+            PE->>CV: Apply binary thresholding & retrieve contours
+            Note over PE: Find largest contour (brain outline) and bounding box
+            Note over PE: Calculate anatomical temporal & hippocampal centers
+            PE->>PE: Draw Gaussian hotspots over temporal lobes and central ventricles
+            PE->>PE: Normalize intensity map to [0, 1]
+        end
+
+        PE->>CV: Apply JET Colormap (COLORMAP_JET) to [0, 255] intensity map
+        CV-->>PE: RGB Heatmap overlay matrix
+        PE->>CV: Blend raw_img (0.65 weight) with heatmap (0.35 weight)
+        CV-->>PE: Blended Grad-CAM image matrix
+        PE-->>BE: Return blended Grad-CAM image matrix
+        deactivate PE
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Interactive High-Res Rendering & Download Controller Scripts -->
+<script>
+  // Global functions for control buttons
+  window.downloadSVGById = function(index, filename) {
+    const card = document.querySelectorAll(".flow-card")[index];
+    const svg = card.querySelector(".mermaid-wrapper svg");
+    if (!svg) {
+      alert("Diagram not fully rendered yet. Please wait a second and try again.");
+      return;
+    }
+    
+    try {
+      const serializer = new XMLSerializer();
+      let source = serializer.serializeToString(svg);
+      
+      // Ensure standard namespaces are injected for standalone rendering
+      if (!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)) {
+        source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+      }
+      if (!source.match(/^<svg[^>]+xmlns:xlink="http:\/\/www\.w3\.org\/1999\/xlink"/)) {
+        source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+      }
+      
+      source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+      
+      const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${filename}.svg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (e) {
+      console.error(e);
+      alert("Error exporting SVG. Try using the Live Editor.");
+    }
+  };
+
+  window.downloadPNGById = function(index, filename, scale = 3) {
+    const card = document.querySelectorAll(".flow-card")[index];
+    const svg = card.querySelector(".mermaid-wrapper svg");
+    if (!svg) {
+      alert("Diagram not fully rendered yet. Please wait a second and try again.");
+      return;
+    }
+    
+    try {
+      const serializer = new XMLSerializer();
+      let source = serializer.serializeToString(svg);
+      
+      if (!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)) {
+        source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+      }
+      if (!source.match(/^<svg[^>]+xmlns:xlink="http:\/\/www\.w3\.org\/1999\/xlink"/)) {
+        source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+      }
+      
+      const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      
+      const img = new Image();
+      img.onload = function() {
+        const bbox = svg.getBoundingClientRect();
+        // Fallback dimensions if bounding box is uncalculated
+        const width = svg.viewBox.baseVal.width || bbox.width || 1200;
+        const height = svg.viewBox.baseVal.height || bbox.height || 900;
+        
+        const canvas = document.createElement("canvas");
+        canvas.width = width * scale;
+        canvas.height = height * scale;
+        const ctx = canvas.getContext("2d");
+        
+        // Fill white solid background so lines and texts are highly readable inside Word/PDFs
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        
+        ctx.drawImage(img, 0, 0, width * scale, height * scale);
+        
+        canvas.toBlob(function(pngBlob) {
+          const pngUrl = URL.createObjectURL(pngBlob);
+          const link = document.createElement("a");
+          link.href = pngUrl;
+          link.download = `${filename}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(pngUrl);
+        }, "image/png");
+        
+        URL.revokeObjectURL(url);
+      };
+      
+      img.onerror = function(err) {
+        console.error("Canvas draw failure: ", err);
+        alert("PNG generation failed. Please use SVG download instead, which works universally.");
+      };
+      
+      img.src = url;
+    } catch (e) {
+      console.error(e);
+      alert("Error generating PNG. Try 'Save Vector SVG' which works instantly.");
+    }
+  };
+
+  window.copyCodeById = function(index) {
+    const card = document.querySelectorAll(".flow-card")[index];
+    const code = card.getAttribute("data-code");
+    if (!code) return;
+    
+    navigator.clipboard.writeText(code).then(() => {
+      alert("✓ Mermaid syntax copied to clipboard!");
+    }).catch(err => {
+      console.error("Clipboard copy failure: ", err);
+      // Fallback
+      const textarea = document.createElement("textarea");
+      textarea.value = code;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      alert("✓ Mermaid syntax copied to clipboard! (Fallback method)");
+    });
+  };
+
+  window.openLiveEditorById = function(index) {
+    const card = document.querySelectorAll(".flow-card")[index];
+    const code = card.getAttribute("data-code");
+    if (!code) return;
+    
+    const state = {
+      code: code,
+      mermaid: JSON.stringify({ theme: "neutral" }),
+      autoSync: true,
+      updateDiagram: true
+    };
+    
+    const jsonStr = JSON.stringify(state);
+    const base64Str = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+      return String.fromCharCode(parseInt(p1, 16));
+    }));
+    
+    const liveEditorUrl = `https://mermaid.live/edit#base64:${base64Str}`;
+    window.open(liveEditorUrl, "_blank");
+  };
+
+  window.toggleZoomById = function(index) {
+    const card = document.querySelectorAll(".flow-card")[index];
+    const wrapper = card.querySelector(".mermaid-wrapper");
+    if (!wrapper) return;
+    
+    if (wrapper.classList.contains("fit-screen")) {
+      wrapper.classList.remove("fit-screen");
+      wrapper.classList.add("full-size");
+    } else {
+      wrapper.classList.remove("full-size");
+      wrapper.classList.add("fit-screen");
+    }
+  };
+
+  // Execution Initialization Orchestrator
+  document.addEventListener("DOMContentLoaded", async () => {
+    const cards = document.querySelectorAll(".flow-card");
+    
+    // 1. Capture and store raw Mermaid code blocks before compiler parsing overrides textContent
+    cards.forEach((card) => {
+      const mElem = card.querySelector(".mermaid");
+      if (mElem) {
+        card.setAttribute("data-code", mElem.textContent.trim());
+      }
+    });
+
+    // 2. Initialize Mermaid with standard configuration settings
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'neutral',
+      sequence: {
+        showSequenceNumbers: true,
+        useMaxWidth: false // Renders SVG components at their absolute pixel measurements (crisp vector rendering)
+      }
+    });
+    
+    // 3. Compile all .mermaid selector tags into active vector elements
+    await mermaid.run();
+
+    // 4. Inject visual control panels dynamically for each card
+    cards.forEach((card, index) => {
+      const wrapper = card.querySelector(".mermaid-wrapper");
+      if (!wrapper) return;
+      
+      // Default container layout configuration (fits view window safely on initial loading)
+      wrapper.classList.add("fit-screen");
+      
+      const title = card.querySelector(".flow-title").textContent.trim();
+      const safeTitle = title.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+      const filename = `neuro_vista_${safeTitle}`;
+      
+      const controlBar = document.createElement("div");
+      controlBar.className = "diagram-controls";
+      controlBar.innerHTML = `
+        <button class="btn btn-success" onclick="downloadPNGById(${index}, '${filename}')">
+          📸 Save High-Res PNG
+        </button>
+        <button class="btn btn-primary" onclick="downloadSVGById(${index}, '${filename}')">
+          📐 Save Vector SVG
+        </button>
+        <button class="btn btn-secondary" onclick="toggleZoomById(${index})">
+          🔍 Toggle Zoom (Fit/Full)
+        </button>
+        <button class="btn btn-secondary" onclick="copyCodeById(${index})">
+          📋 Copy Code
+        </button>
+        <button class="btn btn-secondary" onclick="openLiveEditorById(${index})">
+          🌐 Edit in Live Editor
+        </button>
+      `;
+      
+      card.insertBefore(controlBar, wrapper);
+    });
+  });
+</script>
+
+</body>
+</html>

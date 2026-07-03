@@ -32,6 +32,7 @@ function checkSession() {
     }
     
     checkRememberMe();
+    attachDashboardControls();
 }
 
 function checkRememberMe() {
@@ -44,6 +45,129 @@ function checkRememberMe() {
     }
     if (rememberedPassword && document.getElementById('loginPassword')) {
         document.getElementById('loginPassword').value = rememberedPassword;
+    }
+}
+
+function attachDashboardControls() {
+    if (!window.location.pathname.includes('dashboard.html')) return;
+
+    const searchInput = document.getElementById('dashboardSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', handleDashboardSearch);
+    }
+
+    const notifBtn = document.getElementById('dashboardNotifBtn');
+    if (notifBtn) {
+        notifBtn.style.cursor = 'pointer';
+        notifBtn.addEventListener('click', showNotificationSummary);
+    }
+}
+
+function handleDashboardSearch(event) {
+    const query = (event.target.value || '').trim().toLowerCase();
+    if (!scansHistory || scansHistory.length === 0) {
+        return;
+    }
+
+    const filtered = scansHistory.filter(scan => {
+        const rawText = [
+            `#scan-${scan.id}`,
+            scan.prediction,
+            formatLocalDatetime(scan.scan_date),
+            String(scan.confidence),
+            scan.notes || ''
+        ].join(' ').toLowerCase();
+
+        return rawText.includes(query);
+    });
+
+    renderDashboardHistory(filtered);
+}
+
+function showNotificationSummary() {
+    if (!currentUser) {
+        showToast('Login to see notifications.');
+        return;
+    }
+
+    if (!scansHistory || scansHistory.length === 0) {
+        showToast('No scan notifications available yet. Run an MRI scan to generate updates.');
+        return;
+    }
+
+    const latest = scansHistory[0];
+    const confidence = latest.confidence <= 1.0 ? latest.confidence * 100 : latest.confidence;
+    const when = formatLocalDatetime(latest.scan_date);
+    const summary = `Latest scan #${latest.id}: ${latest.prediction} (${confidence.toFixed(1)}%) on ${when}`;
+    showToast(summary);
+}
+
+function renderDashboardHistory(records) {
+    const tbody = document.getElementById('historyBody');
+    const recentList = document.getElementById('recentScansList');
+    const showingText = document.getElementById('history-showing-text');
+    const paginationEl = document.querySelector('.pagination');
+
+    if (!tbody) return;
+
+    const total = scansHistory.length;
+    const shown = records.length;
+
+    if (showingText) {
+        showingText.innerText = `Showing ${shown} of ${total} records`;
+    }
+    if (paginationEl) {
+        paginationEl.style.display = total <= 5 ? 'none' : 'flex';
+    }
+
+    if (records.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px;">No matching scans found.</td></tr>';
+        if (recentList) {
+            recentList.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-sub); font-size: 0.85rem;">No matching recent scans.</div>';
+        }
+        return;
+    }
+
+    tbody.innerHTML = records.map((s, idx) => {
+        let predClass = 'normal';
+        const cName = s.prediction.toLowerCase();
+        if (cName.includes('mild')) predClass = 'mild';
+        if (cName.includes('moderate')) predClass = 'moderate';
+
+        let displayConfidence = s.confidence;
+        if (displayConfidence <= 1.0) displayConfidence *= 100.0;
+
+        return `
+            <tr>
+                <td><div class="hist-thumb ${predClass}-thumb">MRI</div></td>
+                <td><strong>#SCAN-${s.id}</strong></td>
+                <td><span class="prediction-tag ${predClass}">${s.prediction}</span></td>
+                <td>${displayConfidence.toFixed(1)}%</td>
+                <td>${formatLocalDatetime(s.scan_date)}</td>
+                <td><button class="view-btn" onclick="viewHistoricalScan(${idx})">View</button></td>
+            </tr>
+        `;
+    }).join('');
+
+    if (recentList) {
+        const recentScans = records.slice(0, 3);
+        recentList.innerHTML = recentScans.map((s, idx) => {
+            let predClass = 'normal';
+            const cName = s.prediction.toLowerCase();
+            if (cName.includes('mild')) predClass = 'mild';
+            if (cName.includes('moderate')) predClass = 'moderate';
+
+            return `
+                <div class="scan-row" style="cursor:pointer;" onclick="viewHistoricalScan(${idx})">
+                    <div class="scan-thumb ${predClass}-thumb">MRI</div>
+                    <div class="scan-info">
+                        <span class="scan-patient">Scan #${s.id}</span>
+                        <span class="scan-date">${formatLocalDatetime(s.scan_date)}</span>
+                    </div>
+                    <span class="prediction-tag ${predClass}">${s.prediction}</span>
+                </div>
+            `;
+        }).join('');
     }
 }
 
@@ -321,8 +445,22 @@ function updateUIWithUser(userData) {
 
     const welcome = document.getElementById('welcomeText');
     if (welcome) {
-        welcome.innerText = `Good morning, ${userData.full_name.split(' ')[0]} 👋`;
+        welcome.innerText = getTimeBasedGreeting();
     }
+}
+
+function getTimeBasedGreeting() {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+        return 'Good morning 👋';
+    }
+    if (hour >= 12 && hour < 17) {
+        return 'Good afternoon 👋';
+    }
+    if (hour >= 17 && hour < 21) {
+        return 'Good evening 👋';
+    }
+    return 'Good night 👋';
 }
 
 function handleLogout() {
@@ -847,25 +985,41 @@ function showToast(msg) {
 function formatLocalDatetime(datetimeString) {
     if (!datetimeString) return datetimeString;
 
-    const parts = datetimeString.trim().split(' ');
-    if (parts.length !== 2) {
-        return datetimeString;
-    }
-
-    const [datePart, timePart] = parts;
-    const [year, month, day] = datePart.split('-').map(Number);
-    const [hour, minute, second] = timePart.split(':').map(Number);
-
-    if ([year, month, day, hour, minute].some(n => Number.isNaN(n))) {
-        return datetimeString;
-    }
-
-    const dateObj = new Date(year, month - 1, day, hour, minute, second || 0);
+    let dateObj = new Date(datetimeString);
     if (isNaN(dateObj)) {
-        return datetimeString;
+        const parts = datetimeString.trim().split(' ');
+        if (parts.length !== 2) {
+            return datetimeString;
+        }
+
+        const [datePart, timePart] = parts;
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hour, minute, second] = timePart.split(':').map(Number);
+
+        if ([year, month, day, hour, minute].some(n => Number.isNaN(n))) {
+            return datetimeString;
+        }
+
+        dateObj = new Date(year, month - 1, day, hour, minute, second || 0);
+        if (isNaN(dateObj)) {
+            return datetimeString;
+        }
     }
 
-    return dateObj.toLocaleString();
+    try {
+        return dateObj.toLocaleString('en-US', {
+            timeZone: 'Asia/Karachi',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+    } catch (err) {
+        return dateObj.toLocaleString();
+    }
 }
 
 // --- DYNAMIC REPORT EXPORTER ---

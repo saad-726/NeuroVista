@@ -130,6 +130,7 @@ em { font-family: 'Fraunces', serif; font-style: italic; }
   max-width: 680px;
   position: relative;
   z-index: 5;
+  padding-top: 15px;
 }
 .hero-badge {
   display: inline-flex;

@@ -34,8 +34,28 @@ CREATE TABLE IF NOT EXISTS password_resets (
     expires_at TIMESTAMP NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS registration_requests (
+    email VARCHAR(100) PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    hashed_password VARCHAR(255) NOT NULL,
+    code VARCHAR(6) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS feedback (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    rating INT CHECK (rating BETWEEN 1 AND 5),
+    message TEXT,
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+
 -- Optional: Verify the tables
 DESCRIBE users;
 DESCRIBE scans;
 DESCRIBE password_resets;
-
+DESCRIBE registration_requests;
+DESCRIBE feedback;

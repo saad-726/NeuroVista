@@ -86,9 +86,9 @@
       <div class="topbar-right">
         <div class="topbar-search">
           <span>⌕</span>
-          <input type="text" placeholder="Search scans, patients..." />
+          <input id="dashboardSearchInput" type="text" placeholder="Search scans, patients..." />
         </div>
-        <div class="topbar-notif">
+        <div id="dashboardNotifBtn" class="topbar-notif" title="View notifications">
           <span class="notif-dot"></span>
           🔔
         </div>
@@ -100,7 +100,7 @@
     <section id="sec-home" class="dash-section active">
       <div class="section-header">
         <div>
-          <h2 id="welcomeText">Good morning 👋</h2>
+          <h2 id="welcomeText">Welcome 👋</h2>
           <p class="section-sub">Here's an overview of your diagnostic activity</p>
         </div>
         <button class="btn-primary sm" onclick="showSection('sec-upload', document.querySelector('[onclick*=sec-upload]'))">
@@ -428,7 +428,7 @@
             <div class="chat-name">NeuroBot</div>
             <div class="chat-status">Online · Medical Knowledge Base</div>
           </div>
-          <div class="chat-model-tag">GPT/Claude API</div>
+          <div class="chat-model-tag">Gemini</div>
         </div>
 
         <div class="chat-messages" id="chatMessages">

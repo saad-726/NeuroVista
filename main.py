@@ -15,7 +15,11 @@ from sqlalchemy.orm import sessionmaker, Session, relationship, declarative_base
 from passlib.context import CryptContext
 from dotenv import load_dotenv
 import cv2
-
+try:
+    from zoneinfo import ZoneInfo
+    PKT_ZONE = ZoneInfo("Asia/Karachi")
+except ImportError:
+    PKT_ZONE = datetime.timezone(datetime.timedelta(hours=5))
 # Import the brain MRI predictor
 from prediction import BrainMRIPredictor
 
@@ -179,6 +183,19 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def to_pk_datetime(dt: datetime.datetime) -> datetime.datetime:
+    if dt is None:
+        return dt
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=datetime.timezone.utc)
+    return dt.astimezone(PKT_ZONE)
+
+
+def format_pk_datetime(dt: datetime.datetime) -> str:
+    dt_pk = to_pk_datetime(dt)
+    return dt_pk.isoformat(timespec="seconds")
 
 
 def send_email(to_email: str, subject: str, body: str, html: Optional[str] = None) -> None:
@@ -479,7 +496,7 @@ async def predict_mri(
         "image_path": new_scan.image_path,
         "heatmap_path": new_scan.heatmap_path,
         "notes": new_scan.notes,
-        "scan_date": new_scan.scan_date.strftime("%Y-%m-%d %H:%M:%S")
+        "scan_date": format_pk_datetime(new_scan.scan_date)
     }
 
 @app.get("/api/scans/{user_id}")
@@ -500,7 +517,7 @@ def get_user_scans(user_id: int, db: Session = Depends(get_db)):
             "image_path": s.image_path,
             "heatmap_path": s.heatmap_path,
             "notes": s.notes,
-            "scan_date": s.scan_date.strftime("%Y-%m-%d %H:%M:%S")
+            "scan_date": format_pk_datetime(s.scan_date)
         })
     return result
 

@@ -43,6 +43,41 @@ MEDICAL_ADVICE_TRIGGERS = [
     r"\bprogress(ion)?\b",
 ]
 
+ALZHEIMER_RELEVANT_PATTERNS = [
+    r"\balzheimer",
+    r"\bdementia",
+    r"\bdemented",
+    r"\bcognitive",
+    r"\bmemory\b",
+    r"\bmemory loss\b",
+    r"\bforgetfulness\b",
+    r"\bbrain\b",
+    r"\bmri\b",
+    r"\bscan\b",
+    r"\bdiagnosis\b",
+    r"\breport\b",
+    r"\bconfidence\b",
+    r"\bgrad[\s-]?cam\b",
+    r"\bcnn\b",
+    r"\bbi?lstm\b",
+    r"\bstage(s)?\b",
+    r"\bsymptom(s)?\b",
+    r"\bneuro\b",
+    r"\bneurolog(y|ist)?\b",
+    r"\bbrain health\b",
+    r"\bwellness\b",
+]
+
+GENERIC_CHAT_PATTERNS = [
+    r"\bhi\b",
+    r"\bhello\b",
+    r"\bhey\b",
+    r"\bthank(s| you)\b",
+    r"\bgood (morning|afternoon|evening|night)\b",
+    r"\bhow are you\b",
+]
+
+
 def _classify_intent(message: str) -> tuple[bool, bool]:
     """
     Returns:
@@ -58,6 +93,15 @@ def _classify_intent(message: str) -> tuple[bool, bool]:
     add_disclaimer = is_personal or is_medical_advice
 
     return use_prediction_context, add_disclaimer
+
+
+def _is_domain_relevant(message: str) -> bool:
+    msg = message.lower()
+    if any(re.search(p, msg) for p in ALZHEIMER_RELEVANT_PATTERNS):
+        return True
+    if any(re.search(p, msg) for p in GENERIC_CHAT_PATTERNS):
+        return True
+    return False
 
 
 # ── System Prompts ─────────────────────────────────────────────────────────────
@@ -133,6 +177,14 @@ def get_chat_response(
     confidence: float | None = None,
 ) -> str:
     history = _get_session(user_id)
+
+    # Check whether the user's question is domain-relevant
+    if not _is_domain_relevant(message):
+        return (
+            "I'm NeuroBot, and I only answer questions related to Alzheimer's disease, dementia, "
+            "brain MRI scans, cognitive wellness, and NeuroVista scan results. "
+            "Please ask a question along those topics."
+        )
 
     # Classify intent
     use_prediction_context, add_disclaimer = _classify_intent(message)
