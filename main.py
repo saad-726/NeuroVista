@@ -24,6 +24,8 @@ except ImportError:
 from prediction import BrainMRIPredictor
 
 from chatbot import get_chat_response
+from recommendations import get_treatment_recommendations
+from explainer import get_xai_explanation
 
 # --- CONFIGURATION ---
 DB_USER = "root"
@@ -583,6 +585,41 @@ async def chatbot(req: ChatRequest):
         confidence=req.confidence,
     )
     return {"reply": reply}
+
+# --- TREATMENT RECOMMENDATIONS ENDPOINT ---
+class RecommendationRequest(BaseModel):
+    prediction: str
+    confidence: Optional[float] = None
+    user_id: Optional[int] = None
+
+@app.post("/api/recommendations")
+async def recommendations(req: RecommendationRequest):
+    cards = get_treatment_recommendations(
+        prediction=req.prediction,
+        confidence=req.confidence,
+    )
+    return {"cards": cards}
+
+# --- XAI EXPLANATION ENDPOINT ---
+class ExplainRequest(BaseModel):
+    prediction: str
+    confidence: Optional[float] = None
+    prob_non_demented: Optional[float] = 0.0
+    prob_very_mild: Optional[float] = 0.0
+    prob_mild_demented: Optional[float] = 0.0
+    prob_moderate_demented: Optional[float] = 0.0
+
+@app.post("/api/explain")
+async def explain_prediction(req: ExplainRequest):
+    result = get_xai_explanation(
+        prediction=req.prediction,
+        confidence=req.confidence or 0.0,
+        prob_non=req.prob_non_demented or 0.0,
+        prob_vmild=req.prob_very_mild or 0.0,
+        prob_mild=req.prob_mild_demented or 0.0,
+        prob_moderate=req.prob_moderate_demented or 0.0,
+    )
+    return result
 
 if __name__ == "__main__":
     import uvicorn

@@ -599,6 +599,9 @@ function runPrediction() {
 
             // Render prediction on screen
             displayPredictionResult(data);
+
+            // Load dynamic treatment recommendations for detected class
+            loadRecommendations(data.prediction, data.confidence);
             
             // Reload user records and stats
             loadStats(currentUser.id);
@@ -635,9 +638,18 @@ function displayPredictionResult(scan) {
     mriImg.style.display = 'block';
     mriPlaceholder.style.display = 'none';
 
-    // Grad-CAM is shown as an upcoming feature in the current demo
-    heatmapImg.style.display = 'none';
-    heatmapPlaceholder.style.display = 'flex';
+    // ── Module 1: Show Grad-CAM heatmap ──────────────────────────────────────
+    if (scan.heatmap_path) {
+        heatmapImg.src = `${rootUrl}${scan.heatmap_path}`;
+        heatmapImg.style.display = 'block';
+        heatmapPlaceholder.style.display = 'none';
+    } else {
+        heatmapImg.style.display = 'none';
+        heatmapPlaceholder.style.display = 'flex';
+    }
+
+    // ── Module 1: Grad-CAM region explanation ─────────────────────────────────
+    loadXAIExplanation(scan);
 
     const badge = document.getElementById('res-prediction-badge');
     const text = document.getElementById('res-prediction-text');
@@ -730,8 +742,238 @@ function displayPredictionResult(scan) {
 // Display historical scan details dynamically
 function viewHistoricalScan(index) {
     if (scansHistory[index]) {
-        displayPredictionResult(scansHistory[index]);
+        const scan = scansHistory[index];
+        displayPredictionResult(scan);
+        loadXAIExplanation(scan);
+        loadRecommendations(scan.prediction, scan.confidence);
         showSection('sec-results', document.querySelector('[onclick*="sec-results"]'));
+    }
+}
+
+// ── Module 1: XAI (Explainable AI) — Grad-CAM Analysis Panel ─────────────────
+
+async function loadXAIExplanation(scan) {
+    const panel = document.getElementById('xai-panel');
+    if (!panel) return;
+
+    // Show loading state immediately
+    panel.style.display = 'block';
+    panel.innerHTML = `
+        <div class="xai-loading">
+            <div class="xai-spinner"></div>
+            <span>Generating AI explanation of Grad-CAM heatmap...</span>
+        </div>
+    `;
+
+    try {
+        const response = await fetch(`${API_URL}/explain`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                prediction: scan.prediction,
+                confidence: scan.confidence,
+                prob_non_demented: scan.prob_non_demented,
+                prob_very_mild: scan.prob_very_mild,
+                prob_mild_demented: scan.prob_mild_demented,
+                prob_moderate_demented: scan.prob_moderate_demented,
+            })
+        });
+
+        const data = await response.json();
+        _renderXAIPanel(panel, data, scan);
+
+    } catch (error) {
+        console.error('XAI explanation fetch error:', error);
+        // Fallback render with basic info
+        _renderXAIPanel(panel, null, scan);
+    }
+}
+
+function _renderXAIPanel(panel, data, scan) {
+    const predLower = (scan.prediction || '').toLowerCase();
+    const color = data ? data.color : (
+        predLower.includes('non') ? '#16a34a' :
+        predLower.includes('very mild') ? '#f59e0b' :
+        predLower.includes('mild') ? '#ea580c' : '#e11d48'
+    );
+    const riskLevel = data ? data.risk_level : scan.prediction;
+    const regions = data ? data.regions : [];
+    const featureExplanation = data ? data.feature_explanation : '';
+    const confidenceContext = data ? data.confidence_context : '';
+    const aiText = data ? data.ai_explanation : 'XAI explanation unavailable — server connection required.';
+
+    // Format AI text: clean paragraphs and bold tags
+    let formattedAI = aiText
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .split('\n\n')
+        .filter(p => p.trim())
+        .map(p => `<p class="xai-para">${p.trim().replace(/\n/g, ' ')}</p>`)
+        .join('');
+
+    // Format feature bullets cleanly
+    let featureListItems = '';
+    if (featureExplanation) {
+        const lines = featureExplanation.split('\n').filter(l => l.trim().startsWith('•'));
+        featureListItems = lines.map(l => `<li>${l.replace(/^•\s*/, '').trim()}</li>`).join('');
+    }
+
+    let confPct = scan.confidence || 0;
+    if (confPct <= 1.0) confPct *= 100;
+
+    panel.innerHTML = `
+        <div class="xai-header">
+            <div class="xai-title-row">
+                <span class="xai-badge" style="background:${color}15; color:${color}; border-color:${color}35;">
+                    🧠 Explainable AI (XAI)
+                </span>
+                <h3 class="xai-title">Classification Explanation: <em>${scan.prediction}</em></h3>
+            </div>
+            <div class="xai-risk-pill" style="border-color:${color}; color:${color}; background:${color}10;">
+                ${riskLevel} (${confPct.toFixed(1)}%)
+            </div>
+        </div>
+
+        <div class="xai-body">
+            <!-- Left: Regions & Feature Insights -->
+            <div class="xai-left">
+                <!-- Primary Brain Regions -->
+                ${regions.length > 0 ? `
+                <div class="xai-card-sub">
+                    <div class="xai-block-label">Key Anatomical Focus</div>
+                    <ul class="xai-region-list">
+                        ${regions.map(r => `<li style="border-left-color:${color}">${r}</li>`).join('')}
+                    </ul>
+                </div>` : ''}
+
+                <!-- Feature Contributions -->
+                ${featureListItems ? `
+                <div class="xai-card-sub">
+                    <div class="xai-block-label">Model Feature Attributions</div>
+                    <ul class="xai-feature-list">
+                        ${featureListItems}
+                    </ul>
+                </div>` : ''}
+
+                <!-- Heatmap Colour Legend -->
+                <div class="xai-card-sub xai-legend-box">
+                    <div class="xai-block-label">Activation Intensity Legend</div>
+                    <div class="xai-legend-bar">
+                        <div class="xai-gradient-bar"></div>
+                        <div class="xai-gradient-labels">
+                            <span>Baseline (0.0)</span>
+                            <span>Moderate</span>
+                            <span>Max Peak (1.0)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Concise Clinical AI Summary -->
+            <div class="xai-right">
+                <div class="xai-card-sub" style="display: flex; flex-direction: column;">
+                    <div class="xai-block-label" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>Clinical AI Interpretation</span>
+                        <span class="xai-engine-tag">Powered by Gemini</span>
+                    </div>
+
+                    <div class="xai-ai-text">
+                        ${formattedAI}
+                    </div>
+
+                    ${confidenceContext ? `
+                    <div class="xai-confidence-note">
+                        <strong>Confidence Assessment:</strong> ${confidenceContext}
+                    </div>` : ''}
+
+                    <div class="xai-disclaimer">
+                        ℹ️ <strong>Clinical Note:</strong> Grad-CAM highlights decision-influencing regions. This automated analysis supports, but does not replace, qualified medical evaluation.
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// ── Module 2: Dynamic Treatment Recommendations ───────────────────────────────
+
+async function loadRecommendations(prediction, confidence) {
+    const grid = document.getElementById('rec-grid-dynamic');
+    const alertBox = document.getElementById('rec-alert-dynamic');
+    const alertText = document.getElementById('rec-alert-text');
+    const badge = document.getElementById('rec-scan-badge');
+
+    if (!grid) return;
+
+    // Show loading state
+    grid.innerHTML = `
+        <div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-sub);">
+            <div style="font-size:1.5rem; margin-bottom:12px;">◌</div>
+            <div>Generating personalised recommendations...</div>
+        </div>
+    `;
+
+    // Update badge
+    if (badge) badge.textContent = prediction || 'Latest Scan';
+
+    // Update alert message based on prediction
+    if (alertBox && alertText) {
+        const predLower = (prediction || '').toLowerCase();
+        if (predLower.includes('non')) {
+            alertBox.className = 'rec-alert rec-alert-green';
+            alertText.innerHTML = '<strong>Healthy Baseline Detected</strong><p>Your scan shows no signs of dementia. Continue the recommendations below to maintain brain health.</p>';
+        } else if (predLower.includes('very mild')) {
+            alertBox.className = 'rec-alert rec-alert-amber';
+            alertText.innerHTML = '<strong>Very Early Changes Noted</strong><p>Subtle indicators detected. Early action is highly effective — follow the prioritised recommendations below.</p>';
+        } else if (predLower.includes('mild')) {
+            alertBox.className = 'rec-alert';
+            alertText.innerHTML = '<strong>Action Recommended</strong><p>Mild dementia indicators detected. It is recommended to consult a specialist for evaluation and begin the interventions below.</p>';
+        } else {
+            alertBox.className = 'rec-alert rec-alert-red';
+            alertText.innerHTML = '<strong>Urgent Medical Attention Advised</strong><p>Moderate dementia indicators detected. Please consult a neurologist promptly and prioritise the high-priority recommendations below.</p>';
+        }
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/recommendations`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                prediction: prediction,
+                confidence: confidence,
+                user_id: currentUser ? currentUser.id : null
+            })
+        });
+
+        const data = await response.json();
+        const cards = data.cards || [];
+
+        if (cards.length === 0) {
+            grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-sub);">No recommendations available. Run a scan first.</div>`;
+            return;
+        }
+
+        const priorityColors = {
+            high: 'var(--red, #e11d48)',
+            medium: 'var(--amber, #f59e0b)',
+            standard: 'var(--accent, #2563eb)',
+        };
+
+        grid.innerHTML = cards.map(card => {
+            const pColor = priorityColors[card.priority_level] || priorityColors.standard;
+            const isUrgent = card.priority_level === 'high' ? 'urgent' : '';
+            return `
+                <div class="rec-card ${isUrgent}">
+                    <div class="rec-icon">${card.icon || '◈'}</div>
+                    <h4>${card.title}</h4>
+                    <p>${card.description}</p>
+                    <div class="rec-priority ${card.priority_level}" style="color:${pColor}; border-color:${pColor}20; background:${pColor}10;">${card.priority}</div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (error) {
+        console.error('Recommendations fetch error:', error);
+        grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-sub);">Could not load recommendations. Please check the server connection.</div>`;
     }
 }
 
@@ -810,6 +1052,9 @@ async function initHistory() {
                 if (tipEl) {
                     tipEl.innerText = wellnessTip;
                 }
+
+                // Auto-populate Health Guide recommendations from latest scan
+                loadRecommendations(latestScan.prediction, latestScan.confidence);
             }
 
             tbody.innerHTML = scans.map((s, idx) => {
@@ -1282,11 +1527,16 @@ async function clearScanHistory() {
             const mriPlaceholder = document.getElementById('result-mri-placeholder');
             const heatmapImg = document.getElementById('result-heatmap-img');
             const heatmapPlaceholder = document.getElementById('result-heatmap-placeholder');
+            const xaiPanel = document.getElementById('xai-panel');
             
             if (mriImg) mriImg.style.display = 'none';
             if (mriPlaceholder) mriPlaceholder.style.display = 'block';
             if (heatmapImg) heatmapImg.style.display = 'none';
             if (heatmapPlaceholder) heatmapPlaceholder.style.display = 'block';
+            if (xaiPanel) {
+                xaiPanel.style.display = 'none';
+                xaiPanel.innerHTML = '';
+            }
             
             const badge = document.getElementById('res-prediction-badge');
             const text = document.getElementById('res-prediction-text');

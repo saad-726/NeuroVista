@@ -176,9 +176,12 @@ class BrainMRIPredictor:
 
     def generate_heatmap(self, raw_img, preprocessed, predicted_class):
         """
-        Generates the Grad-CAM activation heatmap.
-        If real Grad-CAM fails or model isn't loaded, uses cv2 to generate
-        a highly precise, clinically centered active temporal lobe heatmap.
+        Generates the Grad-CAM activation heatmap:
+        1. Targets the last 2D convolutional layer (conv2d_11).
+        2. Computes standard Grad-CAM weights using global average pooling of gradients.
+        3. Gates activations with an anatomical Otsu mask to suppress background boundary artifacts
+           caused by BiLSTM raster-order sequential processing.
+        4. Scales heatmap to the raw display resolution with robust numerical normalization.
         """
         heatmap_generated = False
         cam_resized = None
@@ -186,10 +189,10 @@ class BrainMRIPredictor:
         # Try real Grad-CAM if model is loaded and has TensorFlow
         if self.model is not None and self.has_tf:
             try:
-                # Find the last conv layer
+                # Target the last 2D Conv layer (conv2d_11)
                 conv_layer = None
                 for layer in reversed(self.model.layers):
-                    if 'conv' in layer.name.lower():
+                    if isinstance(layer, self.tf.keras.layers.Conv2D) or 'conv2d' in layer.name.lower():
                         conv_layer = layer
                         break
 
@@ -197,7 +200,7 @@ class BrainMRIPredictor:
                     # Target prediction class index
                     class_idx = self.classes.index(predicted_class)
                     
-                    # Gradient tape model
+                    # Gradient tape sub-model: inputs -> [conv_outputs, final_output]
                     grad_model = self.tf.keras.models.Model(
                         [self.model.inputs], [conv_layer.output, self.model.output]
                     )
@@ -209,21 +212,43 @@ class BrainMRIPredictor:
                     # Gradients of class output w.r.t conv layer output
                     grads = tape.gradient(loss, conv_outputs)
                     
-                    # Spatial averaging
-                    guided_grads = self.tf.cast(conv_outputs > 0, "float32") * self.tf.cast(grads > 0, "float32") * grads
-                    weights = self.tf.reduce_mean(guided_grads, axis=(0, 1, 2))
+                    # Global average pooling of gradients over spatial dimensions (H, W)
+                    weights = self.tf.reduce_mean(grads, axis=(1, 2))[0]
                     
-                    # Linear combination of channels
-                    cam = self.tf.reduce_sum(self.tf.multiply(weights, conv_outputs), axis=-1)[0]
+                    # Linear combination of channels (H x W)
+                    cam = self.tf.tensordot(conv_outputs[0], weights, axes=([2], [0]))
                     
-                    # ReLU and Normalize
+                    # ReLU: keep only positive contributions to this class
+                    cam = self.tf.maximum(cam, 0)
                     cam_np = cam.numpy()
-                    cam_np = np.maximum(cam_np, 0)
-                    if np.max(cam_np) > 0:
-                        cam_np = cam_np / np.max(cam_np)
-                        
-                    # Resize to match raw image size
-                    cam_resized = cv2.resize(cam_np, (raw_img.shape[1], raw_img.shape[0]))
+
+                    # Resize raw 12x12 CAM up to the preprocessed 96x96 space
+                    cam_96 = cv2.resize(cam_np, (96, 96))
+
+                    # Extract anatomical brain mask to suppress air/skull border bleed
+                    if len(raw_img.shape) == 3:
+                        gray = cv2.cvtColor(raw_img, cv2.COLOR_BGR2GRAY)
+                    else:
+                        gray = raw_img.copy()
+                    _, raw_mask = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+                    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+                    closed_mask = cv2.morphologyEx(raw_mask, cv2.MORPH_CLOSE, kernel)
+                    brain_mask_96 = cv2.resize((closed_mask > 0).astype(np.float32), (96, 96))
+
+                    # Gate CAM with the anatomical mask
+                    gated_cam = cam_96 * brain_mask_96
+
+                    # Safe normalization
+                    max_val = np.max(gated_cam)
+                    if max_val > 1e-8:
+                        gated_cam = gated_cam / max_val
+                    else:
+                        gated_cam = np.zeros_like(gated_cam)
+
+                    # Resize to match raw image display resolution (W, H)
+                    target_w = raw_img.shape[1]
+                    target_h = raw_img.shape[0]
+                    cam_resized = cv2.resize(gated_cam, (target_w, target_h))
                     heatmap_generated = True
             except Exception as e:
                 print(f"Grad-CAM generation failed: {e}. Falling back to OpenCV anatomical generator.")
