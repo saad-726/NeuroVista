@@ -6,7 +6,6 @@ passlib[bcrypt]
 python-multipart
 pydantic[email]
 numpy
-opencv-python
-tensorflow
+opencv-python-headless
 google-generativeai
 python-dotenv
