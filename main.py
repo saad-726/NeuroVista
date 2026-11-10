@@ -28,12 +28,19 @@ from recommendations import get_treatment_recommendations
 from explainer import get_xai_explanation
 
 # --- CONFIGURATION ---
-DB_USER = "root"
-DB_PASSWORD = "password" # Replace with your MySQL password
-DB_HOST = "localhost"
-DB_NAME = "neuro_vista_db"
+load_dotenv()
+DB_USER = os.environ.get("DB_USER", "root")
+DB_PASSWORD = os.environ.get("DB_PASSWORD", "password")
+DB_HOST = os.environ.get("DB_HOST", "localhost")
+DB_PORT = os.environ.get("DB_PORT", "3306")
+DB_NAME = os.environ.get("DB_NAME", "neuro_vista_db")
 
-SQLALCHEMY_DATABASE_URL = f"mysql+mysqlconnector://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+# Automatically enable SSL for cloud database providers (like Aiven)
+ssl_args = {}
+if "aivencloud.com" in DB_HOST or os.environ.get("DB_SSL", "false").lower() == "true":
+    ssl_args = {"ssl_disabled": False}
+
+SQLALCHEMY_DATABASE_URL = f"mysql+mysqlconnector://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # --- EMAIL / SMTP CONFIG ---
 load_dotenv()
@@ -51,7 +58,8 @@ os.makedirs(SCANS_DIR, exist_ok=True)
 os.makedirs(HEATMAPS_DIR, exist_ok=True)
 
 # --- DATABASE SETUP ---
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+connect_args = {"ssl_disabled": False} if "aivencloud.com" in DB_HOST else {}
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
